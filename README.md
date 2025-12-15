@@ -10,7 +10,7 @@
 
 ### 프로젝트 clone degit
 깃 리포지토리에서 파일만 복사해오는 도구인 degit 옵션을 사용한다.
-- [indiecoder-svelte3-template.git](https://github.com/YooHyeok/indiecoder-svelte3-template.git)
+- [indiecoder-slog-fastify-prisma-server-template.git](https://github.com/YooHyeok/indiecoder-slog-fastify-prisma-server-template.git)
 
 
 #### npx 방식
