@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./main.css" rel="stylesheet">
+</head>
+<body class="relative bg-neutral-100 ">
+<div id="app">
+  <div class="main-container">
+    <!-- start header -->
+    <header class="main-header">
+      <p class="p-main-title" >SLogs</p>
+      <nav class="main-nav">
+        <a href="#" class=" main-menu main-menu-selected mr-6" >모두 보기</a>
+        <a href="#" class="main-menu mr-6" >좋아요 보기</a>
+        <a href="#" class="main-menu main-menu-blocked" >내글 보기</a>
+      </nav>
+      <a href="#" class="text-white ">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-7 w-7 fill-white"><path d="M16 13v-2H7V8l-5 4 5 4v-3z"></path><path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"></path></svg>
+      </a>
+    </header>
+    <!-- end header -->
+  
+    <!-- start main-->
+    <main class="slog-main ">
+      <!-- slog-addForm start -->
+      <div class="slog-add-content-box" >
+        <div class="content-box-header ">
+          <div class="flex" >
+            <p class="whitespace-pre-line" >지금 여러분의 생각을 적어주세요.</p>
+          </div>
+        </div>
+        <div class="content-box-main">
+          <textarea id="message" rows="5" class="slog-content-textarea " placeholder="내용을 입력해 주세요."></textarea>
+        </div>
+        <div class="content-box-bottom">
+          <div class="button-box">
+            <button class="button-base">입력</button>
+            <button class="button-base">취소</button>
+          </div>
+        </div>
+      </div>
+      <!-- slog-addForm end -->
+  
+      <ul class="slog-ul">
+        <li class="mb-5" >
+          <!-- slog-content-box start-->
+          <div class="slog-content-box" >
+            <div class="content-box-header">
+              <div class="content-box-header-inner-left " >
+                <p class="p-user" >freeseamew</p>
+                <p class="p-date" >2022-11-11</p>
+              </div>
+              <div class="content-box-header-inner-right">
+                <button class="button-base-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </button>
+                <div class="drop-menu-box">
+                  <ul>
+                    <li><a href="#" class="drop-menu-button" >수정</a></li>
+                    <li><a href="#" class="drop-menu-button" >삭제</a></li>
+                  </ul>              
+                </div>
+              </div>
+            </div>
+            
+            <div class="content-box-main">
+              <p class="whitespace-pre-line">Dolore ex deserunt aute fugiat aute nulla ea sunt aliqua nisi cupidatat eu. Nostrud in laboris labore nisi amet do dolor eu fugiat consectetur elit cillum esse. Pariatur occaecat nisi laboris tempor laboris eiusmod qui id Lorem esse commodo in. Exercitation aute dolore deserunt culpa consequat elit labore incididunt elit anim.</p>
+            </div>
+            
+            <div class="content-box-bottom">
+              <div class="button-box-inner-left">
+                <a href="#" class="flex">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+                    <path d="M12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.354 2.354-6.049-.002-8.416a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595zm6.791 1.61c1.563 1.571 1.564 4.025.002 5.588L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002z"></path>
+                  </svg>
+                  <p class="text-base" >10</p> 
+              </a>
+              </div>
+              <div class="button-box-inner-right  ">
+                <a href="#" class="flex"></a>
+                  <p class="text-base">10</p>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-6 w-6 ml-1" >
+                    <path d="M20 2H4c-1.103 0-2 .897-2 2v18l5.333-4H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14H6.667L4 18V4h16v12z"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- slog-content-box end -->
+        </li>
+        <li class="mb-5">
+          <!-- slog-content-box start-->
+          <div class="slog-content-box" >
+            <div class="content-box-header">
+              <div class="content-box-header-inner-left" >
+                <p class="p-user" >freeseamew</p>
+                <p class="p-date" >2022-11-1</p>
+              </div>
+              <div class="content-box-header-inner-right ">
+                <button class="button-base-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </button>
+                <div class="drop-menu-box">
+                  <ul>
+                    <li><a href="#" class="drop-menu-button" >수정</a></li>
+                    <li><a href="#" class="drop-menu-button" >삭제</a></li>
+                  </ul>              
+                </div>
+              </div>
+            </div>
+            
+            <div class="content-box-main">
+              <p class="whitespace-pre-line">Dolore ex deserunt aute fugiat aute nulla ea sunt aliqua nisi cupidatat eu. Nostrud in laboris labore nisi amet do dolor eu fugiat consectetur elit cillum esse. Pariatur occaecat nisi laboris tempor laboris eiusmod qui id Lorem esse commodo in. Exercitation aute dolore deserunt culpa consequat elit labore incididunt elit anim.</p>
+            </div>
+            
+            <div class="content-box-bottom p-4 flex  ">
+              <div class="button-box-inner-left">
+                <a href="#" class="flex">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+                    <path d="M12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.354 2.354-6.049-.002-8.416a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595zm6.791 1.61c1.563 1.571 1.564 4.025.002 5.588L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002z"></path>
+                  </svg>
+                  <p class="text-base" >10</p> 
+              </a>
+              </div>
+              <div class="button-box-inner-right  ">
+                <a href="#" class="flex"></a>
+                  <p class="text-base">10</p>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-6 w-6 ml-1" >
+                    <path d="M20 2H4c-1.103 0-2 .897-2 2v18l5.333-4H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14H6.667L4 18V4h16v12z"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- slog-content-box end -->
+        </li>
+        <li class="mb-5">
+          <!-- slog-content-box start-->
+          <div class="slog-content-box" >
+            <div class="content-box-header">
+              <div class="content-box-header-inner-left" >
+                <p class="p-user" >freeseamew</p>
+                <p class="p-date" >2022-11-11</p>
+              </div>
+              <div class="content-box-header-inner-right">
+                <button class="button-base-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                </button>
+                <div class="drop-menu-box">
+                  <ul>
+                    <li><a href="#" class="drop-menu-button" >수정</a></li>
+                    <li><a href="#" class="drop-menu-button" >삭제</a></li>
+                  </ul>              
+                </div>
+              </div>
+            </div>
+            
+            <div class="content-box-main">
+              <p class="whitespace-pre-line">Dolore ex deserunt aute fugiat aute nulla ea sunt aliqua nisi cupidatat eu. Nostrud in laboris labore nisi amet do dolor eu fugiat consectetur elit cillum esse. Pariatur occaecat nisi laboris tempor laboris eiusmod qui id Lorem esse commodo in. Exercitation aute dolore deserunt culpa consequat elit labore incididunt elit anim.</p>
+            </div>
+            
+            <div class="content-box-bottom p-4 flex  ">
+              <div class="button-box-inner-left">
+                <a href="#" class="flex">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+                    <path d="M12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.354 2.354-6.049-.002-8.416a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595zm6.791 1.61c1.563 1.571 1.564 4.025.002 5.588L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002z"></path>
+                  </svg>
+                  <p class="text-base" >10</p> 
+              </a>
+              </div>
+              <div class="button-box-inner-right  ">
+                <a href="#" class="flex"></a>
+                  <p class="text-base">10</p>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-6 w-6 ml-1" >
+                    <path d="M20 2H4c-1.103 0-2 .897-2 2v18l5.333-4H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14H6.667L4 18V4h16v12z"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- slog-content-box end -->    
+        </li>
+        <li class="mb-5">
+          <!-- slog-content-edit-form start-->
+          <div class="slog-content-box" >
+            <div class="content-box-header">
+              <div class="content-box-header-inner-left" >
+                <p class="p-user" >freeseamew</p>
+                <p class="p-date" >2022-11-11</p>
+              </div>
+            </div>
+            
+            <div class="content-box-main">
+              <textarea id="message" rows="5" class="slog-content-textarea " placeholder="내용을 입력해 주세요."></textarea>
+            </div>
+            
+            <div class="content-box-bottom ">
+              <div class="button-box">
+                <button class="button-base">완료</button>
+                <button class="button-base">취소</button>
+              </div>
+            </div>
+          </div>
+          <!-- slog-content-edit-form end-->        
+        </li>
+        <li class="mb-5">
+          <!-- loading-box start -->    
+          <div class="article-loading-box" >
+            <svg aria-hidden="true" class="article-loading-item" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+            </svg>
+          </div>
+          <!-- loading-box end -->        
+        </li>
+      </ul>
+    </main>
+    <!-- end main-->
+  </div>
+  
+  <!-- end main-->
+  <div class="full-loading-box">
+    <p class="full-loading-item" >Loading...</p> 
+  </div>
+</div>  
+</body>
+</html>
