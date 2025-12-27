@@ -209,6 +209,97 @@ comment의 경우 articles의 하위 라우터로 배치될 예정이므로 주�
 </details>
 <br>
 
+# Ajax 통신과 Axios
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+백엔드 서버와 REST API를 이용한 통신이 필요하다.  
+자바스크립트에서 Ajax 통신을 하는 대표적 방법으로 fetch와 Axios가 있다.  
+
+- fetch: 자바스크립트 기본 API
+- Axios: 외부 플러그인
+기본 fetch도 괜찮지만 Axios의 경우 좀 더 다양한 옵션들이 있어 서버와 통신하는 데 많은 편의성을 제공한다.  
+
+## axios 설치
+```bash
+npm install axios
+```
+
+### 기본 사용 방법
+```js
+axios.get("http://localhost:3000/api/articles", {
+  headers: {
+    X-Auth-Token: '###'
+  }
+})
+axios.get("http://localhost:3000/api/likes", {
+  headers: {
+    X-Auth-Token: '###'
+  }
+})
+axios.post("http://localhost:3000/api/article", 
+  {
+    content: "###"
+  },
+  {
+    headers: {
+    X-Auth-Token: '###'
+    }
+  }
+)
+```
+
+### 코드 공통화
+해당 서비스의 정해진 보안 정책을 기준으로 api 호출 메소드를 공통화 시키면 아래와 같이 코드가 간결해진다.  
+```js
+getApi({path: '/articles'});
+getApi({path: '/likes'});
+const options = {
+  path: '/articles',
+  data: {
+    email: '###'
+  }
+}
+getApi(options);
+```
+
+#### [api.js](indiecoder-slog-svelte3-frontend/src/service/api.js)
+```
+설치경로
+├─ node_modules
+├─ public
+├─ scrtips
+├─ src
+│  ├─ components
+│  ├─ pages
+│  ├─ service // 디렉토리 생성(하위 포함)
+│  │  └─ api.js // 생성
+│  ├─ styles
+│  │  └─ main.css
+│  ├─ App.svelte
+│  ├─ Main.svelte
+│  └─ router.svelte
+├─ index.html
+├─ package.json
+└─ rollup.config.js
+```
+
+강의 코드에서는 headers 옵션에 `Access-Control-Allow-Origin`와 `Access-Control-Allow-Credencials` 이라는 CORS 관련 옵션을 요청 헤더에 담아 보내는데, 백엔드 서버에서 응답 헤더에 담아 반환하는 설정값이먀, SameSite의 경우 Cookie에 설정하는 값이기 때문에 백엔드에서 요청 헤더로 부터 꺼내서 다시 세팅하지 않는 이상 사실 이 헤더값은 무의미하다고 봐도 무방하다.  
+
+</details>
+<br>
+
+# Template
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
