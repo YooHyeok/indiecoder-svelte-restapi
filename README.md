@@ -264,7 +264,8 @@ const options = {
 getApi(options);
 ```
 
-#### [api.js](indiecoder-slog-svelte3-frontend/src/service/api.js)
+#### 디렉토리 및 파일 구성
+src 디렉토리 하위에 service 디렉토리를 구성하고 그 하위에 api.js 를 만든다.
 ```
 설치경로
 ├─ node_modules
@@ -284,18 +285,130 @@ getApi(options);
 ├─ package.json
 └─ rollup.config.js
 ```
+- [api.js](indiecoder-slog-svelte3-frontend/src/service/api.js)
+  ```js
+  import axios from 'axios'
 
+  const send = async ({method='', path='', data={}, access_token=''} = {}) => {
+    const commonUrl = 'http://localhost:3000'
+    const url = commonUrl + path
+
+    const headers = {
+      "Access-Control-Allow-Origin": commonUrl, // cross domain 이슈 대응 옵션
+      "Access-Control-Allow-Credentials": true, // 
+      "content-type": "application/json;charset=UTF-8", // 송수신 데이터 타입
+      "accept": "application/json,",
+      "SameSite": "None", // 인증시 사용할 쿠키를 위한 설정
+      "Authorization": access_token // 토큰정보 전송
+    }
+    const options = {
+      method,
+      url,
+      headers,
+      data,
+      withCredentials: true, // 프론트,백엔드 서버의 포트가 다른 형태에 서버 쿠키를 공유하기 위한 설정
+    }
+
+    try {
+      const response = await axios(options);
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const getApi = ({path='', access_token=''} = {}) => {
+    return send({method: 'GET', path, access_token})
+  }
+  const putApi = ({path='', data={} access_token=''} = {}) => {
+    return send({method: 'PUT', path, data, access_token})
+  }
+  const postApi = ({path='', data={} access_token=''} = {}) => {
+    return send({method: 'POST', path, data, access_token})
+  }
+  const delApi = ({path='', data={} access_token=''} = {}) => {
+    return send({method: 'DELETE', path, data, access_token})
+  }
+  export {
+    getApi,
+    putApi,
+    postApi,
+    delApi
+  }
+  ```
 강의 코드에서는 headers 옵션에 `Access-Control-Allow-Origin`와 `Access-Control-Allow-Credencials` 이라는 CORS 관련 옵션을 요청 헤더에 담아 보내는데, 백엔드 서버에서 응답 헤더에 담아 반환하는 설정값이먀, SameSite의 경우 Cookie에 설정하는 값이기 때문에 백엔드에서 요청 헤더로 부터 꺼내서 다시 세팅하지 않는 이상 사실 이 헤더값은 무의미하다고 봐도 무방하다.  
 
 </details>
 <br>
 
-# Template
+# Store 구성
 <details>
 <summary>접기/펼치기</summary>
 <br>
 
+Store는 전역으로 사용할 수 있는 상태값이다.  
 
+## 디렉토리 및 파일 구성
+src 디렉토리 하위에 stores 디렉토리를 구성하고 그 하위에 index.js 를 만든다.
+```
+설치경로
+├─ node_modules
+├─ public
+├─ scrtips
+├─ src
+│  ├─ components
+│  ├─ pages
+│  ├─ service
+│  ├─ stores // 디렉토리 생성(하위 포함)
+│  │  └─ index.js.js // 생성
+│  ├─ styles
+│  │  └─ main.css
+│  ├─ App.svelte
+│  ├─ Main.svelte
+│  └─ router.svelte
+├─ index.html
+├─ package.json
+└─ rollup.config.js
+```
+
+### store 모듈 스켈레톤 코드
+- src/stores/index.js
+  ```js
+  import { writable, get } from 'svelte/store'
+  import { getApi, putApi, delApi, postApi } from '../service/api.js'
+  import { router } from 'tinro'
+
+  function setCurrentArticlesPage() {}
+  function setArticles() {}
+  function setLoadingArticle() {}
+  function setArticleContent() {}
+  function setComments() {}
+  function setAuth() {}
+  function setArticlesMode() {}
+  function setIsLogin() {}
+
+  export const currentArticlesPage = setCurrentArticlesPage()
+  export const articles = setArticles()
+  export const loadingArticle = setLoadingArticle()
+  export const articleContent = setArticleContent()
+  export const comments = setComments()
+  export const auth = setAuth()
+  export const articlesMode = setArticlesMode()
+  export const isLogin = setIsLogin()
+  ```
+
+## store별 기능
+
+| store               | 설명                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| currentArticlesPage | 게시물 스크롤 시 페이지 증가를 관리하는 스토어                                                                       |
+| articles            | 서비스의 가장 메인이 되는 스토어<br>articles라는 게시물 목록이 누적되며 게시물 수정·삭제와 관련된 사용자 정의 메소드를 가진다.<br>좋아요나 코멘트를 추가했을 때 상태를 변경해주는 사용자 정의 메소드 등을 포함한다. |
+| loadingArticle      | 게시물 데이터를 조회할 때 서버와 통신 중이라면 로딩 상태를 표시하는 기능을 하는 스토어                                     |
+| articleContent      | 게시물 단건에 대한 정보만을 담는 스토어                                                                              |
+| comments            | 특정 게시물의 Comment를 담는 스토어<br>코멘트 추가, 수정, 삭제 등을 처리하는 사용자 정의 메소드를 가진다.                   |
+| auth                | 로그인된 유저의 정보를 담는 스토어<br>로그인, 로그아웃, 회원가입 등의 사용자 정의 메소드를 가진다.                           |
+| articlesMode        | 보기 상태를 나타내는 스토어<br>보기 모드: [모두보기, 좋아요보기, 내글보기]                                               |
+| isLogin             | 로그인 상태 여부를 확인하는 스토어                                                                                   |
 
 </details>
 <br>
