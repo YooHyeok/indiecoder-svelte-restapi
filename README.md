@@ -502,6 +502,109 @@ writable에 initValue를 그냥 넘기지 않고 전개하는 이유는 writable
 위 5가지 기능의 메소드와 함께 subscribe를 포함하여 내보낸다.  
 set, update의 경우 store 외부에서 굳이 store를 조작할 필요가 없기 때문에 내보내지 않는다.  
 
+#### 각 기능별 메소드 구현 (setAuth 내)
+- refresh
+  ```js
+  const refresh = async () => {
+    try {
+      const authenticationUser = await postApi({path: 'auth/refresh'})
+      set(authenticationUser) // AccessToken 초기화
+    } catch(error) {
+      auth.resetUserInfo() // 정상이 아닐경우 폴백 (auth store 초기화)
+    }
+  }
+  ```
+
+  아래 코드와 같이 refresh 상태를 기록하는 isRefresh store 추가한다.  
+  ```js
+  export const isRefresh = writable(false)
+  ``` 
+  refresh의 경우 사용자가 특정 행동을 해서 호출되는 것이 아니다.  
+  ![alt text](image-1.png)  
+  만약 AccessToken의 만료시간이 30분 정도라고 한다면 frontend에서 대략 만료 1분전에 refresh를 호출하여 AccessToken을 재발급 받는 방식으로 작동하게 된다.  
+
+  하지만 로그아웃 상태거나 RefreshToken이 정상이 아닐 경우에는 refresh를 더이상 요청할 필요가 없게 된다.  
+  따라서 frontend에서 refresh를 계속 호출할지 여부를 파악해야 하며, 이 상태를 관리하는 store가 isRefresh store이다.
+
+  ```js
+  const refresh = async () => {
+    try {
+      const authenticationUser = await postApi({path: 'auth/refresh'})
+      set(authenticationUser) // Authorization(AccessToken) 초기화
+      isRefresh.set(true)
+    } catch(error) {
+      auth.resetUserInfo() // 정상이 아닐경우 폴백 (auth store 초기화)
+      isRefresh.set(false)
+    }
+  }
+  ```
+  위와같이 refresh가 정상적으로 완료된 경우 isRefresh를 set을 이용하여 true로 유지하고 오류 등에 의해 비정상일 경우 isRefresh를 false로 초기화하여 더이상 refresh를 호출하지 않도록 한다.  
+
+- resetUserInfo
+  ```js
+  const resetUserInfo = () => set({...initValues})
+  ```
+- login
+  ```js
+  const login = async (email, password) => {
+    try {
+      const options = {
+        path: '/auth/login',
+        data: {
+          email: email,
+          pwd: password
+        }
+      }
+      const result = await postApi(options)
+      set(result) // Authorization(AccessToken) 초기화
+      isRefresh.set(true) // refresh 호출여부 on
+      router.goto('/articles') // 라우터의 goto를 이용하여 게시글 목록 화면으로 이동
+    } catch(error) {
+      alert('오류가 발생했습니다. 로그인을 다시 시도해 주세요.')
+    }
+  }
+  ```
+  refresh와 login 모두 RefreshToken을 받아 저장하거나 저장된 토큰을 서버로 전달하는 부분이 없다.  
+  이유는 쿠키 옵션 중 http-only라는 옵션이 서버에서 설정했으며, 해당 옵션은 브라우저에서 자바스크립트를 이용해 쿠키를 조회할 수 없다.  
+  오직 서버만이 쿠키를 쓰거나 읽을 수 있도록 설정하는 옵션이기 때문이다.  
+
+- logout
+  ```js
+  const logout = async () => {
+    try {
+      const options = {
+        path: '/auth/logout'
+      }
+      await delApi(options)
+      set({...initValues})
+      isRefresh.set(false) // refresh 호출여부 off
+      router.goto('/') // 라우터의 goto를 이용하여 메인 화면으로 이동
+    } catch(error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+  ```
+  
+- register
+  ```js
+  const register = async (email, password) => {
+    try {
+      const options = {
+        path: '/auth/register',
+        data: {
+          email: email,
+          pwd: password
+        }
+      }
+      await postApi(options)
+      alert('가입이 완료되었습니다.')
+      router.goto('/login') // 라우터의 goto를 이용하여 로그인 화면으로 이동
+    } catch(error) {
+      alert('오류가 발생했습니다. 로그인을 다시 시도해 주세요.')
+    }
+  }
+  ```
+
 </details>
 <br>
 
