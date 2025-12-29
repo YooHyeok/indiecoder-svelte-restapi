@@ -24,7 +24,28 @@ function setComments() {}
  * 로그인된 유저의 정보를 담는 스토어
  * 로그인, 로그아웃, 회원가입 등의 사용자정의 메소드를 가진다.
  */
-function setAuth() {}
+function setAuth() {
+  let initValues = {
+    id: '',
+    email: '',
+    Authrization: ''
+  }
+  const { subscribe, set, update } = writable({ ...initValues })
+  const refresh = async () => { }
+  const resetUserInfo = async () => { }
+  const login = async () => { }
+  const logout = async () => { }
+  const register = async () => { }
+
+  return {
+    subscribe,
+    refresh,
+    login,
+    logout,
+    resetUserInfo,
+    register
+  }
+}
 /**
  * 보기 상태를 나타내는 스토어
  * 보기 모드: [모두보기, 좋아요보기, 내글보기]
@@ -41,3 +62,4 @@ export const comments = setComments()
 export const auth = setAuth()
 export const articlesMode = setArticlesMode()
 export const isLogin = setIsLogin()
+export const isRefresh = writable(false)
