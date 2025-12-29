@@ -413,6 +413,98 @@ src 디렉토리 하위에 stores 디렉토리를 구성하고 그 하위에 ind
 </details>
 <br>
 
+# 인증 기능
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+## 인증 방식 종류
+- 세션방식: 로그인 패스워드 정보를 서버에 전달하여 세션에 의지하여 인증 유무를 파악  
+- 토큰방식: 인증 토큰을 통해 인증 유무를 파악  
+
+### 토큰 방식
+토큰은 일반적으로 액세스토큰과 리프레시토큰으로 나뉘며, 둘의 가장 큰 차이점은 토큰의 만료시간이 다르다는 점이다.  
+액세스토큰은 사용자 정보가 들어있는 암호화된 토큰으로, 15분에서 1시간 정도로 매우 짧은 만료시간을 갖는다.  
+액세스 토큰이 만료될 쯤 리프레시 토큰을 이용하여 액세스 토큰을 재발급 받아 로그인을 유지한다.  
+따라서 리프래시 토큰은 1주 혹은 그 이상의 만료시간으로 설정하여 사용하는 경우가 많다.
+인증의 메인으로 사용되는 액세스 토큰이 해커에 의해 탈취되더라도 해당 토큰의 만료 시간이 짧아 사용하기 힘들게 하기 위함이다.  
+
+두 토큰의 저장 위치는 다르게 적용된다.  
+액세스 토큰은 클라이언트의 메모리(JS 변수)에 저장되어 필요한 요청이 발생하면 바로 사용할 수 있게 준비한다.  
+svelte에서는 store에 저장하여 필요에 따라 불러 사용한다.  
+리프레시 토큰은 http-only 옵션이 적용된 쿠키 즉, 로컬에 저장한다.  
+http-only로 저장된 쿠키는 브라우저에서 자바스크립트를 이용해 로드할 수 없고, 서버의 요청을 통해서만 읽거나 쓸 수 있어 보안에 강화
+
+- access token  
+  - 사용자 정보가 들어있는 암호화된 토큰  
+  - 15분 ~ 1시간 정도로 매우 짧은 만료시간  
+  - 클라이언트 메모리(JS 변수)에 저장
+- refresh token  
+  - 액세스 토큰이 만료되었을 경우 재발급 하기위한 토큰
+  - 1주 혹은 그 이상의 만료시간
+  - 쿠키(http-only)에 저장
+    - 자바스클비트로 로드 불가능
+
+## 인증 과정 
+![alt text](image.png)
+1. id와 password를 서버에 전달하여 로그인 인증 시도  
+2. 서버에 전달된 id와 패스워드 값이 정상일 경우 서버는 클라이언트에 RefreshToken과 AccessToken을 전달
+  - RefreshToken: setCookie 옵션을 통해 http-only 상태로 저장
+  - AccessToken: return할 store에 저장
+3.  클라이언트가 서버로 정보를 요청할 일이 발생한다면 AccessToken을 header에 담아 함께 서버로 전송
+4. 서버에서는 header로 넘겨받은 AccessToken 상태를 확인하고 정상일 경우 클라이언트가 요청한 정보를 반환
+5. 설정된 AccessToken 만료시간이 가까워질 경우 클라이언트는 RefreshToken을 이용해 서버에 AccessToken 재발급 요청
+6. RefreshToken 상태가 정상일경우 서버는 재발급된 AccessToken을 클라이언트에 반환
+
+이렇게 재발급 받은 AccessToken을 이용하여 필요한 요청이 가능
+
+### Auth Store 구현
+
+#### 스켈레톤 코드
+- 
+```js
+function setAuth() {
+  let initValues = {
+    id: '',
+    email: '',
+    Authrization: ''
+  }
+  const { subscribe, set, update } = writable({...initValues})
+  const refresh = async () => {}
+  const resetUserInfo = () => {}
+  const login = async () => {}
+  const logout = async () => {}
+  const register = async () => {}
+
+  return {
+    subscribe,
+    refresh,
+    login,
+    logout,
+    resetUserInfo,
+    register
+  }
+}
+```
+writable을 초기화 할 객체인 initValue를 정의한다.  
+initValue에는 사용자 정보와 Authorization을 초기화 상태로 만들어주는데, Authorization이 바로 AccessToken이 된다.  
+writable에 initValue를 그냥 넘기지 않고 전개하는 이유는 writable에서 참조를 끊어(복제) 추후 같은 변수로 초기화 시킬 수 있기 때문이다.  
+
+
+| 함수           | 설명                                            |
+| ------------- | ----------------------------------------------- |
+| refresh       | refreshToken을 이용 AccessToken 요청 메소드        |
+| resetUserInfo | auth store 초기화 메소드                          |
+| login         | 로그인 기능 메소드                                 |
+| logout        | 로그아웃 기능 메소드                               |
+| register      | 회원가입 기능 메소드                               |
+
+위 5가지 기능의 메소드와 함께 subscribe를 포함하여 내보낸다.  
+set, update의 경우 store 외부에서 굳이 store를 조작할 필요가 없기 때문에 내보내지 않는다.  
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
