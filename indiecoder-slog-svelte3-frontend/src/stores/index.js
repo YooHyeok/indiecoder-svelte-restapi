@@ -31,11 +31,63 @@ function setAuth() {
     Authrization: ''
   }
   const { subscribe, set, update } = writable({ ...initValues })
-  const refresh = async () => { }
-  const resetUserInfo = async () => { }
-  const login = async () => { }
-  const logout = async () => { }
-  const register = async () => { }
+  const refresh = async () => {
+    try {
+      const authenticationUser = await postApi({ path: 'auth/refresh' })
+      set(authenticationUser) // Authorization(AccessToken) 초기화
+      isRefresh.set(true)
+    } catch (error) {
+      auth.resetUserInfo() // 정상이 아닐경우 폴백 (auth store 초기화)
+      isRefresh.set(false)
+    }
+  }
+  const resetUserInfo = () => set({ ...initValues })
+  const login = async (email, password) => {
+    try {
+      const options = {
+        path: '/auth/login',
+        data: {
+          email: email,
+          pwd: password
+        }
+      }
+      const result = await postApi(options)
+      set(result) // Authorization(AccessToken) 초기화
+      isRefresh.set(true) // refresh 호출여부 on
+      router.goto('/articles') // 라우터의 goto를 이용하여 게시글 목록 화면으로 이동
+    } catch (error) {
+      alert('오류가 발생했습니다. 로그인을 다시 시도해 주세요.')
+    }
+  }
+  const logout = async () => {
+    try {
+      const options = {
+        path: '/auth/logout'
+      }
+      await delApi(options)
+      set({ ...initValues })
+      isRefresh.set(false) // refresh 호출여부 off
+      router.goto('/') // 라우터의 goto를 이용하여 메인 화면으로 이동
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+  const register = async (email, password) => {
+    try {
+      const options = {
+        path: '/auth/register',
+        data: {
+          email: email,
+          pwd: password
+        }
+      }
+      await postApi(options)
+      alert('가입이 완료되었습니다.')
+      router.goto('/login') // 라우터의 goto를 이용하여 로그인 화면으로 이동
+    } catch (error) {
+      alert('오류가 발생했습니다. 로그인을 다시 시도해 주세요.')
+    }
+  }
 
   return {
     subscribe,
