@@ -1,4 +1,4 @@
-import { writable, get } from 'svelte/store'
+import { writable, get, derived } from 'svelte/store'
 import { getApi, putApi, delApi, postApi } from '../service/api.js'
 import { router } from 'tinro'
 
@@ -104,7 +104,13 @@ function setAuth() {
  */
 function setArticlesMode() {}
 /** 로그인 상태여부 확인 스토어 */
-function setIsLogin() {}
+function setIsLogin() {
+  // const checkLogin = derived(auth, $auth => $auth.Authorization ? true : false)
+  const checkLogin = derived(auth, $auth => {
+    return $auth.Authorization ? true : false
+  })
+  return checkLogin;
+}
 
 export const currentArticlesPage = setCurrentArticlesPage()
 export const articles = setArticles()
