@@ -608,6 +608,139 @@ set, update의 경우 store 외부에서 굳이 store를 조작할 필요가 없
 </details>
 <br>
 
+# 인증기능 컴포넌트 적용
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+## 로그인 기능 컴포넌트 연동
+- [AuthLogin.svelte](indiecoder-slog-svelte3-frontend/src/components/AuthLogin.svelte)
+  - 반응형 변수 및 기능 함수 정의
+    ```svelte
+    <script>
+      import { auth } from '../stores'
+
+      /** 입력값과 연결할 상태값 */
+      let values = {
+        formEmail: '',
+        formPassword: ''
+      }
+
+      /** values 초기화 메소드 */
+      const resetValues = () => {
+        values.formEmail = '';
+        values.formPassword = ''
+      }
+
+      /** 로그인 요청 메소드 */
+      const onLogin = async () => {
+        try {
+          await auth.login(values.formEmail, values.formPassword)
+          resetValues();
+        } catch (error) {
+          alert('인증이 되지 않았습니다. 다시 시도해주세요.')
+        }
+      }
+
+    </script>
+    ```
+  - 입력 form 연동
+    ```svelte
+    <!-- login.html -->
+    <!-- login-box start-->
+    <div class="auth-content-box " >        
+      <div class="auth-box-main">
+        <div class="auth-input-box">
+          <input type="email" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formEmail} />
+          <label for="floating_email" class="auth-input-label">이메일</label>
+        </div>      
+        <div class="auth-input-box">
+          <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPassword} />
+          <label for="floating_email" class="auth-input-label">비밀번호</label>
+        </div>    
+      </div>
+      <div class="content-box-bottom">
+        <div class="button-box">
+          <button class="button-base" on:click={onLogin}>로그인</button>
+        </div>
+      </div>
+    </div>
+    <!-- login-box end-->
+    ```
+
+## isLogin 구현
+로그인 상태를 확인하는 store이다.  
+기존의 writable과는 다른 성격의 derived라는 store를 사용한다.  
+
+### derived
+이미 만들어진 스토어를 참조해서 새로운 값을 리턴하는 형태의 store이다.  
+이때 참조한 store의 값에는 아무런 영향을 주지 않는다.  
+```js
+const storeName = derived(a, $a => {
+  return $a + 1
+})
+```
+derived 내에서 참조할 store와 콜백함수를 매개변수로 받아 콜백 함수 내에서 조작한 후 반환하는 형태가 된다.  
+이때 참조할 store를 사용할 때는 store 변수 앞에 $기호를 작성해야 한다.  
+첫번째 매개변수인 store(a)를 콜백 함수의 매개변수에 전달하는데 이때 $를 작성하여 사용한다.  
+svelte store에서 $ 접두사를 사용할 경우 자동 구독 기능 즉, subscribe 함수가 자동으로 호출되어 현재 store 값 즉, writable에 등록한 값을 반환한다.  
+
+authStore의 authorization(AccessToken)에 값이 있는지를 파악하여 값이 있으면 true 없으면 false를 return한다.  
+
+- store/index.js
+  ```js
+  import { /* 생략 */ derived } from 'svelte/store'
+  function setIsLogin() {
+    const checkLogin = derived(auth, $auth => $auth.Authorization ? true : false)
+    return checkLogin;
+  }
+
+  function setAuth() {  /* 생략 */ }
+
+  export const auth = setAuth() // store
+  export const isLogin = setIsLogin()
+  ```
+
+이렇게 구현한 isLogin 값을 기준으로 게시글 헤더에서 로그인 로그아웃 아이콘을 조건에 따라 분기하여 출력되도록 ArticleHeader.svelte 컴포넌트에 적용한다.
+
+- [ArticleHeader.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleHeader.svelte)
+  ```svelte
+  <script>
+    import { router } from 'tinro'
+    import { auth, isLogin } from '../stores'
+
+    const goLogin = () => router.goto('/login')
+    const onLogout = () => auth.logout()
+  </script>
+  <!-- articles.html -->
+  <!-- start header -->
+  <header class="main-header">
+    <p class="p-main-title" >SLogs</p>
+    <nav class="main-nav">
+      <button class=" main-menu main-menu-selected mr-6" >모두 보기</button>
+      <button class="main-menu mr-6" >좋아요 보기</button>
+      <button class="main-menu main-menu-blocked" >내글 보기</button>
+    </nav>
+    {#if $isLogin}
+    <!--로그아웃 -->
+    <button href="#" class="text-white" on:click={onLogout}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-7 w-7 fill-white"><path d="M16 13v-2H7V8l-5 4 5 4v-3z"></path><path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"></path></svg>
+    </button>  
+    {:else}
+    <!--로그인 -->
+    <button href="#" class="text-white" on:click={goLogin}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-7 w-7 fill-white"><path d="m13 16 5-4-5-4v3H4v2h9z"></path><path d="M20 3h-9c-1.103 0-2 .897-2 2v4h2V5h9v14h-9v-4H9v4c0 1.103.897 2 2 2h9c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2z"></path></svg>
+    </button>  
+    {/if}
+      
+    
+  </header>
+  <!-- end header -->
+  ```
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
