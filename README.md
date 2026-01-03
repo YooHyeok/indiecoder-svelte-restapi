@@ -646,8 +646,6 @@ set, update의 경우 store 외부에서 굳이 store를 조작할 필요가 없
     ```
   - 입력 form 연동
     ```svelte
-    <!-- login.html -->
-    <!-- login-box start-->
     <div class="auth-content-box " >        
       <div class="auth-box-main">
         <div class="auth-input-box">
@@ -665,10 +663,9 @@ set, update의 경우 store 외부에서 굳이 store를 조작할 필요가 없
         </div>
       </div>
     </div>
-    <!-- login-box end-->
     ```
 
-## isLogin 구현
+## isLogin store 구현
 로그인 상태를 확인하는 store이다.  
 기존의 writable과는 다른 성격의 derived라는 store를 사용한다.  
 
@@ -712,8 +709,6 @@ authStore의 authorization(AccessToken)에 값이 있는지를 파악하여 값�
     const goLogin = () => router.goto('/login')
     const onLogout = () => auth.logout()
   </script>
-  <!-- articles.html -->
-  <!-- start header -->
   <header class="main-header">
     <p class="p-main-title" >SLogs</p>
     <nav class="main-nav">
@@ -737,6 +732,50 @@ authStore의 authorization(AccessToken)에 값이 있는지를 파악하여 값�
   </header>
   <!-- end header -->
   ```
+
+## Login 기능 컴포넌트 연동
+AuthRegister.svelte 컴포넌트에 store로부터 auth store를 불러와 연동해준다.  
+불러온 auth store로 부터 register 기능을 호출하여 실제 회원가입을 할 수 있도록 회원가입 함수를 구현한다.  
+- AuthRegister.svelte
+  ```svelte
+  <script>
+    import { auth } from '../stores'
+    let values = {
+      formEmail: '',
+      formPassword: '',
+      formPasswordConfirm: '',
+    }
+    const onRegister = async () => {
+      try {
+        await auth.register(values.formEmail, values.formPassword)
+      } catch (error) {
+        alert('회원가입에 실패했습니다. 다시 시도해 주세요.')
+      }
+    }
+  </script>
+  <div class="auth-content-box" >        
+    <div class="auth-box-main">
+      <div class="auth-input-box">
+        <input type="email" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formEmail}/>
+        <label for="floating_email" class="auth-input-label">이메일</label>
+      </div>      
+      <div class="auth-input-box">
+        <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPassword}/>
+        <label for="floating_email" class="auth-input-label">비밀번호</label>
+      </div>      
+      <div class="auth-input-box">
+        <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPasswordConfirm}/>
+        <label for="floating_email" class="auth-input-label">비밀번호 확인</label>
+      </div>                              
+    </div>
+    <div class="content-box-bottom">
+      <div class="button-box">
+        <button class="button-base" on:click={onRegister}>회원가입</button>
+      </div>
+    </div>
+  </div>
+  ```
+
 
 </details>
 <br>
