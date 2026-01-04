@@ -849,8 +849,38 @@ export default app
 ```
 참고로 원래 await은 async 안에서만 사용 가능했지만 ECMAScript 2022부터는 최상위 레벨에서 await 호출이 가능해졌다.  
 
+### refresh interval 호출
+AccessToken의 유효기간은 15분 이므로 14분마다 새로고침 하도록 구현한다.  
+최상위 컴포넌트인 App.svelte 컴포넌트에서 구현한다.
+
+```svelte
+<script>
+  import Router from './router.svelte'
+  import { onMount } from 'svelte'
+  import { auth, isRefresh } from './stores'
+
+  const refresh_time = 1000 * 60 * 14 // 14분
+
+  onMount(() => {
+    const onRefresh = setInterval(() => {
+      if($isRefresh) {
+        auth.refresh()
+      } else {
+        clearInterval(onRefresh)
+      }
+    }, refresh_time)
+  })
+</script>
+<div class="main-container">
+  <Router />
+</div>
+```
+
+이제 백엔드에 의해 http-only 설정이 된 쿠키값이 14분마다 초기화된다.
+
 </details>
 <br>
+
 
 # Template
 <details>
