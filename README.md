@@ -776,6 +776,78 @@ AuthRegister.svelte 컴포넌트에 store로부터 auth store를 불러와 연�
   </div>
   ```
 
+## Refresh 기능 구현
+현재 로그인시 액세스 토큰이 유지되는 시간은 단 15분이다.  
+그리고 화면을 새로고침 했을 경우에도 로그인이 풀어진다.  
+이때 필요한 기능이 바로 Refresh 으로, 로그인을 유지할 수 있다.
+
+우선 앱을 처음 실행할 때 Refresh가 실행되고 RefreshToken이 정상이면 AccessToken을 발급받을 수 있는 기능부터 구현한다.  
+
+App.svelte에서 auth store를 import 한 후 auth.refresh()를 호출한다.  
+auth.refresh()는 서버와 통신을 해서 토큰을 가져오므로 비동기적으로 작동한다.  
+따라서 첫번째 Refresh가 작동한 후 앱의 기능들이 실행해야 하므로 Svelte의 await-block을 활용하여 처리한다.  
+- App.svelte
+  ```svelte
+  <script>
+    import Router from "./router.svelte";
+    import { auth } from './stores'
+  </script>
+  <div class="main-comtainer">
+    {#await auth.refresh() then}
+      <Router />
+    {/await}
+  </div>
+  ```
+await-block은 함수의 반환값 여부와 상관없이 오직 Promise가 성공인 경우에만 then을 탄다.
+만약 실패일 경우 `:catch` 블록을 사용하면된다.
+```svelte
+{#await auth.refresh() then}
+  <Router />
+{:catch err}
+  <Error />
+{/await}
+```
+
+await-block을 사용하지 않는다면 아래와 같이 #if와 onMount를 활용하여 기본 문법으로 구현 가능하다.  
+- App.svelte
+  ```svelte
+  <script>
+    import Router from "./router.svelte";
+    import { onMount } from 'svelte';
+
+    let ready = false;
+
+    onMount(async () => {
+      await auth.refresh();
+      ready = true;
+    });
+  </script>
+
+  {#if ready}
+    <Router />
+  {/if}
+  ```
+
+첫번째 refresh 이후 Router 배치 기능들이 작동하게 된다.  
+
+await block의 경우 markup 영역에서 비동기를 처리하기 위한 방법이다.
+또 다른 방법으로 main.js에서 refresh를 설정할 수도 있다.  
+
+```js
+import './styles/main.css'
+import App from './App.svelte'
+
+/* Refresh 적용 */
+import { auth } from './stores'
+await auth.refresh()
+
+const app = new App({
+  target: document.getElementById('app'),
+})
+
+export default app
+```
+참고로 원래 await은 async 안에서만 사용 가능했지만 ECMAScript 2022부터는 최상위 레벨에서 await 호출이 가능해졌다.  
 
 </details>
 <br>
