@@ -33,7 +33,7 @@ function setAuth() {
   const { subscribe, set, update } = writable({ ...initValues })
   const refresh = async () => {
     try {
-      const authenticationUser = await postApi({ path: 'auth/refresh' })
+      const authenticationUser = await postApi({ path: '/auth/refresh' })
       set(authenticationUser) // Authorization(AccessToken) 초기화
       isRefresh.set(true)
     } catch (error) {
