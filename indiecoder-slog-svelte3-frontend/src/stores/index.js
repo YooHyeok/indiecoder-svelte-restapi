@@ -3,14 +3,42 @@ import { getApi, putApi, delApi, postApi } from '../service/api.js'
 import { router } from 'tinro'
 
 /** 게시물 스크롤시 페이지 증가 */
-function setCurrentArticlesPage() {}
+function setCurrentArticlesPage() {
+  const { subscribe, update, set } = writable(1)
+
+  const resetPage = () => { }
+  const increPage = () => { }
+
+  return {
+    subscribe,
+    resetPage,
+    increPage
+  }
+}
 
 /**
  * 서비스의 가장 메인이 되는 스토어  
  * articles 라는 게시물 목록이 쌓이게 되고, 게시물의 수정 삭제 등과 관련된 사용자정의 메소드와
  * 좋아요나 코멘트를 추가했을 때 상태를 변경해주는 사용자 정의 메소드 등을 갖게 된다.
  */
-function setArticles() {}
+function setArticles() {
+  let initValues = {
+    articleList: [],
+    totalPageCount: 0,
+    menuPopup: '',
+    editMode: ''
+  }
+
+  const { subscribe, update, set } = writable({...initValues})
+  const fetchArticles = async () => {}
+  const resetArticles = () => {}
+
+  return {
+    subscribe,
+    fetchArticles,
+    resetArticles
+  }
+}
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
 function setLoadingArticle() {}
 /** 게시물 단건에 대한 정보만을 담을 스토어 */
