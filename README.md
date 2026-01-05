@@ -881,6 +881,154 @@ AccessToken의 유효기간은 15분 이므로 14분마다 새로고침 하도�
 </details>
 <br>
 
+# 게시글 목록 구현
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+## 구현 store
+- currentArticlePage: 현재 페이지
+- articles: 실제 게시글 목록
+
+### store 기본 스켈레톤 코드 구현
+- store: currentArticlePage, articles
+  ```js
+  import { writable, get, derived } from 'svelte/store'
+  import { getApi, putApi, delApi, postApi } from '../service/api.js'
+  import { router } from 'tinro'
+  function setCurrentArticlesPage() {
+
+    const { subscribe, update, set } = writable(1)
+    
+    const resetPage = () => {}
+    const increPage = () => {}
+
+    return {
+      subscribe,
+      resetPage,
+      increPage
+    }
+  }
+  function setArticles() {
+    let initValues = {
+      articleList: [], // 서버로부터 받은 글 목록
+      totalPageCount: 0, // 서버로부터 받은 전체 페이지 수
+      menuPopup: '', // 게시글 하나마다 표시되는 팝업메뉴 상태값
+      editMode: '' // 게시글중 수정할 경우 수정모드로 전환된 글 고유 번호
+    }
+
+    const { subscribe, update, set } = writable({...initValues})
+    const fetchArticles = async () => {}
+    const resetArticles = () => {}
+
+    return {
+      subscribe,
+      fetchArticles,
+      resetArticles
+    }
+  }
+  export const articles = setArticles()
+  export const currentArticlesPage = setCurrentArticlesPage()
+  ```
+
+#### currentArticles 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  import { writable, get, derived } from 'svelte/store'
+  import { getApi, putApi, delApi, postApi } from '../service/api.js'
+  import { router } from 'tinro'
+  function setCurrentArticlesPage() {
+
+    const { subscribe, update, set } = writable(1)
+    
+    const resetPage = () => set(1)
+    const increPage = () => {
+      update(data => data = data + 1) // 페이지 번호 증가
+      articles.fetchArticles(); // 게시글 목록 호출
+    }
+
+    return {
+      subscribe,
+      resetPage,
+      increPage
+    }
+  }
+  /* setArticles 생략 */
+  export const articles = setArticles()
+  export const currentArticlesPage = setCurrentArticlesPage()
+  ```
+
+#### articles 구현
+
+articles store는 서버로부터 호출한 글목록을 담아두는 스토어이다.  
+단순히 글 목록만 담아두는것 뿐만 아니라 담겨진 글 목록의 값들을 조작하는 다양한 사용자 정의 메소드들도 가지게 된다.
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  import { writable, get, derived } from 'svelte/store'
+  import { getApi, putApi, delApi, postApi } from '../service/api.js'
+  import { router } from 'tinro'
+
+  /* setCurrentArticlesPage 생략 */
+  function setArticles() {
+    let initValues = {
+      articleList: [],
+      totalPageCount: 0,
+      menuPopup: '',
+      editMode: ''
+    }
+
+    const { subscribe, update, set } = writable({...initValues})
+
+    /** 선택된 페이지 데이터 조회(페이지 증가시 호출) */
+    const fetchArticles = async () => {
+      const currentPage = get(currentArticlesPage) // 다른 store에서 값을 참조하는 경우 혹은 svelte파일이 아닌 일반 js 모듈에서 store값을 참조하는 경우 get을 사용
+
+      let path = `/articles/?pageNumber=${currentPage}`
+      try {
+        const access_token = get(auth).Authorization
+        const options = {
+          path: path,
+          access_token: access_token
+        }
+        const getDatas = await getApi(options)
+        const newData = {
+          articleList: getDatas.articleList,
+          totalPageCount: getDatas.totalPageCount,
+        }
+        update(datas => {
+          if (currentPage == 1) {
+            datas.articleList = newData.articleList
+            datas.totalPageCount = newData.totalPageCount
+          } else {
+            const newArticles = [...datas.articleList, ...newData.articleList]
+            datas.articleList = newArticles
+            data.totalPageCount = newData.totalPageCount
+          }
+          return datas
+        })
+      } catch(error) {
+        throw error
+      }
+    }
+    /** 게시글 목록 초기화(페이지번호 초기화) */
+    const resetArticles = () => {
+      set({...initValues})
+      currentArticlesPage.resetPage()
+    }
+
+    return {
+      subscribe,
+      fetchArticles,
+      resetArticles
+    }
+  }
+  export const articles = setArticles()
+  export const currentArticlesPage = setCurrentArticlesPage()
+  ```
+
+
+</details>
+<br>
 
 # Template
 <details>
