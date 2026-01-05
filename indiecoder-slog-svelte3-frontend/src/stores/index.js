@@ -4,10 +4,14 @@ import { router } from 'tinro'
 
 /** 게시물 스크롤시 페이지 증가 */
 function setCurrentArticlesPage() {
+
   const { subscribe, update, set } = writable(1)
 
-  const resetPage = () => { }
-  const increPage = () => { }
+  const resetPage = () => set(1)
+  const increPage = () => {
+    update(data => data = data + 1) // 페이지 번호 증가
+    articles.fetchArticles(); // 게시글 목록 호출
+  }
 
   return {
     subscribe,
@@ -29,9 +33,44 @@ function setArticles() {
     editMode: ''
   }
 
-  const { subscribe, update, set } = writable({...initValues})
-  const fetchArticles = async () => {}
-  const resetArticles = () => {}
+  const { subscribe, update, set } = writable({ ...initValues })
+
+  /** 선택된 페이지 데이터 조회(페이지 증가시 호출) */
+  const fetchArticles = async () => {
+    const currentPage = get(currentArticlesPage) // 다른 store에서 값을 참조하는 경우 혹은 svelte파일이 아닌 일반 js 모듈에서 store값을 참조하는 경우 get을 사용
+
+    let path = `/articles/?pageNumber=${currentPage}`
+    try {
+      const access_token = get(auth).Authorization
+      const options = {
+        path: path,
+        access_token: access_token
+      }
+      const getDatas = await getApi(options)
+      const newData = {
+        articleList: getDatas.articleList,
+        totalPageCount: getDatas.totalPageCount,
+      }
+      update(datas => {
+        if (currentPage == 1) {
+          datas.articleList = newData.articleList
+          datas.totalPageCount = newData.totalPageCount
+        } else {
+          const newArticles = [...datas.articleList, ...newData.articleList]
+          datas.articleList = newArticles
+          data.totalPageCount = newData.totalPageCount
+        }
+        return datas
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+  /** 게시글 목록 초기화(페이지번호 초기화) */
+  const resetArticles = () => {
+    set({ ...initValues })
+    currentArticlesPage.resetPage()
+  }
 
   return {
     subscribe,
