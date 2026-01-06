@@ -1026,6 +1026,132 @@ articles store는 서버로부터 호출한 글목록을 담아두는 스토어�
   export const currentArticlesPage = setCurrentArticlesPage()
   ```
 
+## 게시글 목록 컴포넌트 적용
+
+### 무한스크롤
+스크롤이 일정 위치 이하로 내려오면 새로운 페이지가 호출되고, 기존의 데이터에 더해지는 방식으로 구현한다.  
+무한스크롤의 핵심 기능으로 onScroll 이라는 메소드를 구현하여 사용한다.  
+### onScroll
+특정 마크업 영역의 dom 정보를 전달인자로 전달받게 된다.  
+전달받은 값은 dom에 대한 다양한 값이 담겨져 있으며, 그중 스크롤과 화면 사이즈 관련 정보를 사용한다.  
+
+- e.target.scrollHeight: 브라우저의 스크롤 높이  
+- e.target.clientHeight: 브라우저의 화면 높이  
+- e.target.scrollTop: 브라우저에서 현재 스크롤 위치  
+
+위 정보들을 바탕으로 realHeight와 triggerHeight 값을 구한다.  
+- realHeight: 실제 스크롤 사이즈
+- triggerHeight: 다음 페이지가 호출된 스크롤 위치(realHeight * 0.7)  
+
+화면에 scroll이 70%정도 내려오게 되면 다음 페이지를 호출하고 데이터를 받아 목록에 추가하는 형태로 무한스크롤을 구현한다.  
+
+### [ArticleList.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleList.svelte)
+```svelte
+<script>
+  import Article from "./Article.svelte";
+  import ArticleLoading from "./ArticleLoading.svelte";
+  import { onMount } from 'svelte'
+  import { articles, currentArticlesPage } from '../stores'
+
+  /* 스크롤 정보를 담을 상태값 */
+  let component
+  let element
+
+  onMount(() => {
+    articles.resetArticles()
+    articles.fetchArticles()
+  })
+  
+  $: {
+    if (component) {
+      element = component.parentNode
+      element.addEventListener('scroll', onScroll)
+      element.addEventListener('resize', onScroll)
+    }
+  }
+
+  const onScroll = (e) => {
+    const scrollHeight = e.target.scrollHeight // 스크롤 높이
+    const clientHeight = e.target.clientHeight // 화면 높이
+    const scrollTop = e.target.scrollTop // 현재 스크롤 위치
+    const realHeight = scrollHeight - clientHeight // 실제 스크롤 높이
+    const triggerHeight = realHeight * 0.7 // 화면 70%에 해당하는 높이(다음 페이지가 호출될 스크롤 위치)
+
+    const triggerComputed = () => {
+      return scrollTop > triggerHeight
+    }
+    const scrollTrigger = () => {
+      return triggerComputed()
+    }
+    if (scrollTrigger()) {
+      currentArticlesPage.increPage()
+    }
+  }
+
+</script>
+<div class="slog-list-wrap" bind:this={component}>    
+  <ul class="slog-ul">
+    {#each $articles.articleList as article, index}
+      <li class="mb-5">
+        <Article/>
+      </li>
+    {/each}
+  </ul>
+</div>
+```
+bind:this의 경우 자신의 dom 정보를 상태값 component에 바인딩시키는 것이다.  
+react 혹은 vue의 ref와 유사하다고 보면 된다.  
+component의 parentNode의 경우 ArticleList를 자식 컴포넌트로 참조하는 Articles.svelte 컴포넌트의 div.slog-main을 가리킨다.  
+바로 해당 dom에 scroll이 생기게 되므로 scroll 정보를 얻기 위해서는 현재 컴포넌트의 부모 dom을 변수로 받아야 한다.  
+
+### [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+```svelte
+<script>
+  export let article
+</script>
+<div class="slog-content-box" >
+  <div class="content-box-header">
+    <div class="content-box-header-inner-left " >
+      <p class="p-user" >{article.userEmail}</p>
+      <p class="p-date" >{article.createdAt}</p>
+    </div>
+    <div class="content-box-header-inner-right">
+      <button class="button-base-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+      </button>
+      <div class="drop-menu-box">
+        <ul>
+          <li><button href="#" class="drop-menu-button" >수정</button></li>
+          <li><button href="#" class="drop-menu-button" >삭제</button></li>
+        </ul>              
+      </div>
+    </div>
+  </div>
+  
+  <div class="content-box-main">
+    <p class="whitespace-pre-line">{article.content}</p>
+  </div>
+  
+  <div class="content-box-bottom">
+    <div class="button-box-inner-left">
+      <button class="flex">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+          <path d="M12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.354 2.354-6.049-.002-8.416a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595zm6.791 1.61c1.563 1.571 1.564 4.025.002 5.588L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002z"></path>
+        </svg>
+        <p class="text-base" >{article.likeCount}</p> 
+      </button>                    
+    </div>
+    <div class="button-box-inner-right  ">
+      <button class="flex">
+        <p class="text-base">{article.commentCount}</p>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-6 w-6 ml-1" >
+          <path d="M20 2H4c-1.103 0-2 .897-2 2v18l5.333-4H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14H6.667L4 18V4h16v12z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+```
 
 </details>
 <br>
