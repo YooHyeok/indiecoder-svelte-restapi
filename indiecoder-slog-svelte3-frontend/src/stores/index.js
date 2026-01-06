@@ -58,7 +58,7 @@ function setArticles() {
         } else {
           const newArticles = [...datas.articleList, ...newData.articleList]
           datas.articleList = newArticles
-          data.totalPageCount = newData.totalPageCount
+          datas.totalPageCount = newData.totalPageCount
         }
         return datas
       })
