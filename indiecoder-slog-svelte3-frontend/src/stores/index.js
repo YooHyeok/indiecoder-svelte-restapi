@@ -38,7 +38,7 @@ function setArticles() {
   /** 선택된 페이지 데이터 조회(페이지 증가시 호출) */
   const fetchArticles = async () => {
     const currentPage = get(currentArticlesPage) // 다른 store에서 값을 참조하는 경우 혹은 svelte파일이 아닌 일반 js 모듈에서 store값을 참조하는 경우 get을 사용
-
+    loadingArticle.turnOnLoading()
     let path = `/articles/?pageNumber=${currentPage}`
     try {
       const access_token = get(auth).Authorization
@@ -62,7 +62,9 @@ function setArticles() {
         }
         return datas
       })
+      loadingArticle.turnOffLoading()
     } catch (error) {
+      loadingArticle.turnOffLoading()
       throw error
     }
   }
@@ -70,6 +72,7 @@ function setArticles() {
   const resetArticles = () => {
     set({ ...initValues })
     currentArticlesPage.resetPage()
+    articlePageLock.set(false)
   }
 
   return {
@@ -79,7 +82,22 @@ function setArticles() {
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
-function setLoadingArticle() {}
+function setLoadingArticle() {
+  const { subscribe, set } = writable(false)
+  const turnOnLoading = () => {
+    set(true)
+    articlePageLock.set(true)
+  }
+  const turnOffLoading = () => {
+    set(false)
+    articlePageLock.set(false)
+  }
+  return {
+    subscribe,
+    turnOnLoading,
+    turnOffLoading
+  }
+}
 /** 게시물 단건에 대한 정보만을 담을 스토어 */
 function setArticleContent() {}
 /** 
@@ -181,6 +199,7 @@ function setIsLogin() {
 
 export const currentArticlesPage = setCurrentArticlesPage()
 export const articles = setArticles()
+export const articlePageLock = writable(false)
 export const loadingArticle = setLoadingArticle()
 export const articleContent = setArticleContent()
 export const comments = setComments()
