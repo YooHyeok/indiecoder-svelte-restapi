@@ -1153,6 +1153,102 @@ component의 parentNode의 경우 ArticleList를 자식 컴포넌트로 참조�
 </div>
 ```
 
+## 스크롤 조회 고도화
+
+### store
+- articlePageLock  
+  특정 조건에 해당하면 더이상 페이지를 조회하지 않는 일종의 장금장치  
+- loadingArticle  
+  데이터 조회시 조회 종료 전까지 로딩중에 대한 값
+  
+```js
+function setLoadingArticle() {
+  const { subscribe, set } = writable(false)
+  const turnOnLoading = () => {
+    set(true)
+    articlePageLock.set(true)
+  }
+  const turnOffLoading = () => {
+    set(false)
+    articlePageLock.set(false)
+  }
+  return {
+    subscribe,
+    turnOnLoading,
+    turnOffLoading
+  }
+}
+/* 생략 */
+export const articlePageLock = writable(false)
+/* 생략 */
+```
+
+loadingArticle의 turnOnLoading과 turnOffLoading 메소드를 article Store의 fetchArticles 메소드에서 호출하도록 적용한다.  
+```js
+function setArticles {
+  /* 생략 */
+  const fetchArticles = async () => {
+    /* 생략 */
+    loadingArticle.turnOnLoading()
+    try {
+      /* 조회 및 update 생략 */
+      loadingArticle.turnOffLoading()
+    } catch (error) {
+      loadingArticle.turnOffLoading()
+      throw error
+    }
+  }
+  /* 생략 */
+}
+```
+articles Store의 resetArticles 메소드에도 articlePageLock을 set으로 false값을 할당하여 페이지를 초기화 시킬 때 페이지 잠금이 되어있다면 잠금을 해제하도록 한다.  
+```js
+function setArticles {
+  /* 생략 */
+  const resetArticles = () => {
+    /* 생략 */
+    articlePageLock.set(false) // 추가
+  }
+    
+}
+```
+
+### 컴포넌트 적용
+
+#### [ArticleList.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleList.svelte)
+- script articlePageLock store 적용 코드
+  ```svelte
+  <script>
+    import ArticleLoading from "./ArticleLoading.svelte";
+    import { /* 생략 */ loadingArticle, articlePageLock } from '../stores'
+
+    const onScroll = (e) => {
+      /* 생략 */
+      const countCheck = () => { // 추가
+        const check = $articles.totalPageCount <= $currentArticlesPage 
+        return check
+      }
+      if(countCheck()) {// 전체 페이지보다 현재 호출된 페이지보다 작거나 같은 경우 조회 잠금
+        articlePageLock.set(true)
+      }
+      const scrollTrigger = () => {
+        return triggerComputed() && !countCheck() && !$articlePageLock // 조건추가
+      }
+      /* 생략 */
+    }
+  </script>
+  ```
+- template loadingArticle store 적용 코드
+  ```svelte
+  <div class="slog-list-wrap" bind:this={component}>    
+    <!-- 생략 -->
+    {#if $loadingArticle}
+      <ArticleLoading />
+    {/if}
+  </div>
+  ```
+
+
 </details>
 <br>
 
