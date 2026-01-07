@@ -2,7 +2,10 @@
   import Article from "./Article.svelte";
   import ArticleLoading from "./ArticleLoading.svelte";
   import { onMount } from 'svelte'
-  import { articles, currentArticlesPage } from '../stores'
+  import { 
+    articles, currentArticlesPage,
+    loadingArticle, articlePageLock
+   } from '../stores'
 
   /* 스크롤 정보를 담을 상태값 */
   let component
@@ -31,8 +34,17 @@
     const triggerComputed = () => {
       return scrollTop > triggerHeight
     }
+    const countCheck = () => {
+      const check = $articles.totalPageCount <= $currentArticlesPage 
+      return check
+    }
+
+    if(countCheck()) {// 전체 페이지보다 현재 호출된 페이지보다 작거나 같은 경우 조회 잠금
+      articlePageLock.set(true)
+    }
+
     const scrollTrigger = () => {
-      return triggerComputed()
+      return triggerComputed() && !countCheck() && !$articlePageLock
     }
     if (scrollTrigger()) {
       currentArticlesPage.increPage()
@@ -50,4 +62,7 @@
       </li>
     {/each}
   </ul>
+  {#if $loadingArticle}
+    <ArticleLoading />
+  {/if}
 </div><!-- slog-list-wrap end-->
