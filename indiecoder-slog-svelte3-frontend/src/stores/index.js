@@ -75,10 +75,31 @@ function setArticles() {
     articlePageLock.set(false)
   }
 
+  const addArticle = async (content) => {
+    const access_token = get(auth).Authorization
+    try {
+      const options = {
+        path: "/articles",
+        data: {
+          content: content
+        },
+        access_token: access_token
+      }
+      const newArticles = await postApi(options)
+      update(datas => {
+        datas.articleList = [newArticles, ...datas.articleList]
+        return datas;
+      })
+    } catch (error) {
+      throw error;
+    }
+  }
+
   return {
     subscribe,
     fetchArticles,
-    resetArticles
+    resetArticles,
+    addArticle
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
