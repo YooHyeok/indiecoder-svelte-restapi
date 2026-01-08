@@ -1252,6 +1252,115 @@ function setArticles {
 </details>
 <br>
 
+# 게시글 작성 구현
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+게시글 작성 이전에 먼저, 게시글 등록은 로그인이 되었을 경우에만 가능하므로, 게시글을 입력받을 수 있는 영역이 로그인 여부에 따라 출력되도록 적용해야한다.  
+게시글 입력 폼 컴포넌트인 ArticleAddForm.svelte 를 출력하는 pages/Articles.svelte 컴포넌트에서 적용한다.
+## 게시글 입력폼 로그인 여부에 따른 출력
+
+- [Articles.svelte](indiecoder-slog-svelte3-frontend/src/pages/Articles.svelte)
+  ```svelte
+  <script>
+    import ArticleHeader from "../components/ArticleHeader.svelte";
+    import ArticleList from "../components/ArticleList.svelte";
+    import ArticleAddForm from "../components/ArticleAddForm.svelte";
+    import { isLogin } from '../stores'
+  </script>
+
+  <ArticleHeader />
+  <main class="slog-main">
+    {#if $isLogin}
+      <ArticleAddForm />
+    {/if}
+    <ArticleList />
+  </main>
+  ```
+isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도록 적용한다.  
+로그아웃 상태일 경우 ArticleAddForm 영역이 렌더링되지 않고, 로그인 상태일 경우에만 렌더링된다.  
+
+## 게시글 작성 및 저장
+
+### 게시글 저장 store 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+    /* 생략 */
+    const resetArticles = () => {
+      /* 생략 */
+    }
+    const addArticle = async (content) => {
+      const access_token = get(auth).Authorization
+      try {
+        const options = {
+          path: "/articles",
+          data: {
+            content: content
+          },
+          access_token: access_token
+        }
+        const newArticles = await postApi(options)
+        update(datas => {
+          datas.articleList = [newArticles, ...datas.articleList]
+          return datas;
+        })
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    return {
+      subscribe,
+      fetchArticles,
+      resetArticles,
+      addArticle // 반환값에 프로퍼티 추가
+    }
+  }
+  ```
+
+### 게시글 저장 기능 컴포넌트 적용
+- [ArticleAddForm.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleAddForm.svelte)
+  ```svelte
+  <script>
+    import { articles } from '../stores'
+    let values = {
+      formContent: ''
+    }
+    const onAddArticle = async () => {
+      try {
+        await articles.addArticle(values.formContent)
+      } catch (error) {
+        
+      }
+    }
+    const onCancelAddArticle = () => {
+      values.formContent = ''
+    }
+
+  </script>
+  <div class="slog-add-content-box" >
+    <div class="content-box-header ">
+      <div class="flex" >
+        <p>지금 여러분의 생각을 적어주세요.</p>
+      </div>
+    </div>
+    <div class="content-box-main">
+      <textarea bind:value={values.formContent} id="message" rows="5" class="slog-content-textarea " placeholder="내용을 입력해 주세요."></textarea>
+    </div>
+    <div class="content-box-bottom">
+      <div class="button-box">
+        <button class="button-base" on:click={onAddArticle}>입력</button>
+        <button class="button-base" on:click={onCancelAddArticle}>취소</button>
+      </div>
+    </div>
+  </div>
+  ```
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
