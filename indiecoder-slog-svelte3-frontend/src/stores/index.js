@@ -95,11 +95,26 @@ function setArticles() {
     }
   }
 
+  const openMenuPopup = (id) => {
+    update(datas => {
+      datas.menuPopup = id
+      return datas
+    })
+  }
+  const closeMenuPopup = () => {
+    update(datas => {
+      datas.menuPopup = ''
+      return datas
+    })
+  }
+
   return {
     subscribe,
     fetchArticles,
     resetArticles,
-    addArticle
+    addArticle,
+    openMenuPopup,
+    closeMenuPopup
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
