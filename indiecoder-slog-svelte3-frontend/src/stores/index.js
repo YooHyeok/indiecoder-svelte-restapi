@@ -108,13 +108,31 @@ function setArticles() {
     })
   }
 
+  const openEditModeArticle = (id) => {
+    articles.closeMenuPopup()
+
+    update(datas => {
+      datas.editMode = id
+      return datas
+    })
+  }
+
+  const closeEditModeArticle = () => {
+    update(datas => {
+      datas.editMode = ''
+      return datas
+    })
+  }
+  
   return {
     subscribe,
     fetchArticles,
     resetArticles,
     addArticle,
     openMenuPopup,
-    closeMenuPopup
+    closeMenuPopup,
+    openEditModeArticle,
+    closeEditModeArticle,
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
