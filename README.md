@@ -1361,6 +1361,97 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
 </details>
 <br>
 
+# 게시글 수정 및 삭제
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+게시글 수정 및 삭제를 만드는 기능은 articles store에서 구현한다.  
+### 팝업 메뉴 기능 구현
+#### store 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+    let initValues = {
+      /* 생략 */
+      menuPopup: '',
+      editMode: ''
+    }
+    /* 생략 */
+  }
+  ```
+  articles store에는 menuPopup과 editMode가 이미 초기값의 속성으로 구성되어 있다.  
+  menuPopup과 editMode에는 특정 게시글, 즉 하나의 article에 대한 고유 값인 id값이 필요에 따라 저장되거나 공백으로 남게 된다.  
+
+  ```js
+  function setArticles() {
+    let initValues = {
+      /* 생략 */
+      menuPopup: '',
+      editMode: ''
+    }
+    const openMenuPopup = (id) => {
+      update(datas => {
+        datas.menuPopup = id
+        return datas
+      })
+    }
+    const closeMenuPopup = () => {
+      update(datas => {
+        datas.menuPopup = ''
+        return datas
+      })
+    }
+    return {
+      /* 생략 */
+      openMenuPopup,
+      closeMenuPopup,
+    }
+  }
+  ```
+#### store 컴포넌트 적용
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+  ```
+  <script>
+    export let article
+    import { articles, auth } from '../stores'
+    let isViewMenu = false // true일 경우 context 버튼 출력
+    $: {
+      if ($articles.menuPopup === article.id) {
+        isViewMenu = true
+      } else {
+        isViewMenu = false
+      }
+    }
+    const onToggleMenuPopup = (id) => {
+      if (isViewMenu === true) {
+        articles.closeMenuPopup()
+        return;
+      }
+      articles.openMenuPopup(id)
+    }
+  </script>
+  <div class="slog-content-box" >
+    <div class="content-box-header">
+      <!-- 생략 -->
+      <div class="content-box-header-inner-right">
+        <!-- 생략 -->
+        <div class="drop-menu-box" class:block={isViewMenu}>
+          <ul>
+            <li><button href="#" class="drop-menu-button" >수정</button></li>
+            <li><button href="#" class="drop-menu-button" >삭제</button></li>
+          </ul>              
+        </div>
+      </div>
+    </div>
+    <!-- 생략 -->
+  </div>
+  ```
+
+</details>
+<br>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
