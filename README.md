@@ -1367,7 +1367,7 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
 <br>
 
 게시글 수정 및 삭제를 만드는 기능은 articles store에서 구현한다.  
-### 팝업 메뉴 기능 구현
+### 팝업메뉴 기능 구현
 #### store 구현
 - [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
   ```js
@@ -1411,7 +1411,7 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
   ```
 #### store 컴포넌트 적용
 - [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
-  ```
+  ```svelte
   <script>
     export let article
     import { articles, auth } from '../stores'
@@ -1434,6 +1434,7 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
   <div class="slog-content-box" >
     <div class="content-box-header">
       <!-- 생략 -->
+      {#if article.userId === $auth.id}
       <div class="content-box-header-inner-right">
         <!-- 생략 -->
         <div class="drop-menu-box" class:block={isViewMenu}>
@@ -1443,11 +1444,114 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
           </ul>              
         </div>
       </div>
+      {/if}
     </div>
     <!-- 생략 -->
   </div>
   ```
 
+### 수정모드 기능 구현
+#### store 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+    /* 생략 */
+    const closeMenuPopup = () => {/* 생략 */}
+    const openEditModeArticle = () => {
+      articles.closeMenuPopup()
+
+      update(datas => {
+        datas.editMode = id
+        return datas
+      })
+    }
+
+    const closeEditModeArticle = () => {
+      update(datas => {
+        datas.editMode = ''
+        return datas
+      })
+    }
+    return {
+      /* 생략 */
+      openEditModeArticle,
+      closeEditModeArticle,
+    }
+  }
+  ```
+
+#### store 컴포넌트 적용
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+  ```svelte
+  <script>
+    export let article
+    import { articles, auth } from '../stores'
+    import ArticleEditForm from './ArticleEditForm.svelte' /* 게시글 수정 컴포넌트 import */
+    
+    /* 생략 */
+    const onToggleMenuPopup = (id) => {/* 생략 */}
+
+    /* onEditModeArticle 메소드 구현 */
+    const onEditModeArticle = (id) => {
+      articles.openEditModeArticle(id)
+    }
+  </script>
+  {#if $articles.editMode === article.id} <!-- 조건 블록 및 ArticleEditForm 신규 적용 -->
+    <ArticleEditForm {article} />
+  {:else}
+  <div class="slog-content-box" >
+    <div class="content-box-header">
+      <!-- 생략 -->
+      <div class="content-box-header-inner-right">
+        <!-- 생략 -->
+        <div class="drop-menu-box" class:block={isViewMenu}>
+          <ul>
+            <li><button href="#" class="drop-menu-button" on:click={onEditModeArticle}>수정</button></li> <!-- onEditModeArticle dom 연동 -->
+            <li><button href="#" class="drop-menu-button" >삭제</button></li>
+          </ul>              
+        </div>
+      </div>
+    </div>
+    <!-- 생략 -->
+  </div>
+  {/if}
+  ```
+- [ArticleEditForm.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleEditForm.svelte)
+  ```svelte
+  <script>
+    export let article
+    import { articles } from '../stores'
+    let articleValue = {
+      id: article.id,
+      userEmail: article.userEmail,
+      createdAt: article.createdAt,
+      content: article.content,
+    }
+    const closeEditModeArticle = () => {
+      articles.closeEditModeArticle()
+    }
+  </script>
+
+  <div class="slog-content-box" >
+    <div class="content-box-header">
+      <div class="content-box-header-inner-left" >
+        <p class="p-user" >{articleValue.userEmail}</p>
+        <p class="p-date" >{articleValue.createdAt}</p>
+      </div>
+    </div>
+    
+    <div class="content-box-main">
+      <textarea bind:value={articleValue.content} id="message" rows="5" class="slog-content-textarea " placeholder="내용을 입력해 주세요."></textarea>
+    </div>
+    
+    <div class="content-box-bottom">
+      <div class="button-box">
+        <button class="button-base">완료</button>
+        <button class="button-base" on:click={closeEditModeArticle}>취소</button>
+      </div>
+    </div>
+  </div>
+  ```
 </details>
 <br>
 <br>

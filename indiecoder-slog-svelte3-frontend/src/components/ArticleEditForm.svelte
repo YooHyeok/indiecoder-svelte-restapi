@@ -1,6 +1,6 @@
 <script>
   export let article
-  import { articles, auth } from '../stores'
+  import { articles } from '../stores'
   let articleValue = {
     id: article.id,
     userEmail: article.userEmail,
@@ -11,7 +11,6 @@
     articles.closeEditModeArticle()
   }
 </script>
-
 
 <!-- articles.html -->
 <!-- slog-content-edit-form start-->
