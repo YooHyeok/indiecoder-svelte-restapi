@@ -123,6 +123,40 @@ function setArticles() {
       return datas
     })
   }
+
+  const updateArticle = async (article) => {
+    const access_token = get(auth).Authorization
+
+    try {
+      const updateData = {
+        articleId: article.id,
+        content: article.content
+      }
+
+      const options = {
+        path: '/articles',
+        data: updateData,
+        access_token: access_token
+      }
+
+      const updateArticle = await putApi(options)
+
+      update(datas => {
+        const newArticleList = datas.articleList.map(article => {
+          if (article.id === updateArticle.id) {
+            article = updateArticle
+          }
+          return article // 수정된 게시글 id가 수정 대상 id와 일치할 경우 게시글정보를 수정 완료된 정보로 수정
+        })
+        datas.articleList = newArticleList
+        return datas;
+      })
+      articles.closeEditModeArticle()
+      alert('수정이 완료되었습니다.')
+    } catch (error) {
+      alert('수정중에 오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
   
   return {
     subscribe,
@@ -133,6 +167,7 @@ function setArticles() {
     closeMenuPopup,
     openEditModeArticle,
     closeEditModeArticle,
+    updateArticle,
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
@@ -167,7 +202,7 @@ function setAuth() {
   let initValues = {
     id: '',
     email: '',
-    Authrization: ''
+    Authorization: ''
   }
   const { subscribe, set, update } = writable({ ...initValues })
   const refresh = async () => {
