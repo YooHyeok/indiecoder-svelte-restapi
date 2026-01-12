@@ -1552,6 +1552,78 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
     </div>
   </div>
   ```
+
+### 수정기능 구현
+#### store 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+    /* 생략 */
+    const openEditModeArticle = () => {/* 생략 */}
+
+    const updateArticle = async (article) => {
+      const access_token = get(auth).Authorization
+
+      try {
+        const updateData = {
+          articleId: article.id,
+          content: article.content
+        }
+
+        const options = {
+          path: '/articles',
+          data: updateData,
+          access_token: access_token
+        }
+
+        const updateArticle = await putApi(options)
+
+        update(datas => {
+          const newArticleList = datas.articleList.map(article => {
+            if (article.id === updateArticle.id) {
+              article = updateArticle
+            }
+            return article // 수정된 게시글 id가 수정 대상 id와 일치할 경우 게시글정보를 수정 완료된 정보로 수정
+          })
+          datas.articleList = newArticleList
+          return datas;
+        })
+        articles.closeEditModeArticle()
+        alert('수정이 완료되었습니다.')
+      } catch (error) {
+        alert('수정중에 오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    return {
+      /* 생략 */
+      updateArticle
+    }
+  }
+  ```
+  
+#### store 컴포넌트 적용
+- [ArticleEditForm.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleEditForm.svelte)
+  ```svelte
+  <script>
+    export let article
+    import { articles } from '../stores'
+    let articleValue = {/* 생략 */}
+    const onCoseEditModeArticle = () => {/* 생략 */}
+    const onUpdateArticle = () => {
+      articles.updateArticle(articleValue)
+    }
+  </script>
+
+  <div class="slog-content-box" >
+    <!-- 생략 -->    
+    <div class="content-box-bottom">
+      <div class="button-box">
+        <button class="button-base" on:click={onUpdateArticle}>완료</button>
+        <!-- 생략 -->
+      </div>
+    </div>
+  </div>
+  ```
 </details>
 <br>
 <br>
