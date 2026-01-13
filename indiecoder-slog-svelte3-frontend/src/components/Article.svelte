@@ -21,6 +21,11 @@
   const onEditModeArticle = (id) => {
     articles.openEditModeArticle(id)
   }
+  const onDeleteArticle = (id) => {
+    if (confirm('삭제 하시겠습니까?')) {
+      articles.deleteArticle(id)
+    }
+  }
 </script>
 <!-- articles.html -->
 <!-- slog-content-box start-->
@@ -41,7 +46,7 @@
       <div class="drop-menu-box" class:block={isViewMenu}>
         <ul>
           <li><button href="#" class="drop-menu-button" on:click={() => onEditModeArticle(article.id)}>수정</button></li>
-          <li><button href="#" class="drop-menu-button" >삭제</button></li>
+          <li><button href="#" class="drop-menu-button" on:click={() => onDeleteArticle(article.id)} >삭제</button></li>
         </ul>              
       </div>
     </div>
