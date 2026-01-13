@@ -1609,7 +1609,8 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
     import { articles } from '../stores'
     let articleValue = {/* 생략 */}
     const onCoseEditModeArticle = () => {/* 생략 */}
-    const onUpdateArticle = () => {
+
+    const onUpdateArticle = () => {// 코드 추가
       articles.updateArticle(articleValue)
     }
   </script>
@@ -1618,12 +1619,85 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
     <!-- 생략 -->    
     <div class="content-box-bottom">
       <div class="button-box">
-        <button class="button-base" on:click={onUpdateArticle}>완료</button>
+        <button class="button-base" on:click={onUpdateArticle}>완료</button> <!-- 코드 적용 -->
         <!-- 생략 -->
       </div>
     </div>
   </div>
   ```
+
+### 삭제기능 구현
+#### store 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+    /* 생략 */
+    const updateArticle = async (article) => {/* 생략 */}
+    const deleteArticle = async (id) => {
+      const access_token = get(auth).Authorization
+      console.log(access_token)
+      try {
+        const options = {
+          path: `/articles/${id}`,
+          access_token: access_token
+        }
+
+        await delApi(options)
+        update(datas => {
+          const newArticleList = datas.articleList.filter(article => article.id != id)
+          datas.articleList = newArticleList // 현재 id를 제외한 게시글목록으로 수정
+          return datas
+        })
+      } catch (error) {
+        
+      }
+    }
+
+    return {
+      /* 생략 */
+      deleteArticle
+    }
+  }
+  ```
+
+#### store 컴포넌트 적용
+- [ArticleEditForm.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleEditForm.svelte)
+```svelte
+<script>
+  export let article
+  import { articles, auth } from '../stores'
+  import ArticleEditForm from './ArticleEditForm.svelte'
+  /* 생략 */
+  const onEditModeArticle = (id) => {/* 생략 */}
+
+  const onDeleteArticle = (id) => { // 코드 추가
+    if (confirm('삭제 하시겠습니까?')) {
+      articles.deleteArticle(id)
+    }
+  }
+</script>
+{#if $articles.editMode === article.id}
+  <ArticleEditForm {article} />
+{:else}
+<div class="slog-content-box" >
+  <div class="content-box-header">
+    <!-- 생략 -->
+    {#if article.userId === $auth.id}
+    <div class="content-box-header-inner-right">
+      <!-- 생략 -->
+      <div class="drop-menu-box" class:block={isViewMenu}>
+        <ul>
+          <!-- 생략 -->
+          <li><button href="#" class="drop-menu-button" on:click={() => onDeleteArticle(article.id)} >삭제</button></li> <!-- 코드 적용 -->
+        </ul>              
+      </div>
+    </div>
+    {/if}
+  </div>
+  <!-- 생략 -->
+</div>
+{/if}
+```
 </details>
 <br>
 <br>
