@@ -157,6 +157,26 @@ function setArticles() {
       alert('수정중에 오류가 발생했습니다. 다시 시도해 주세요.')
     }
   }
+
+  const deleteArticle = async (id) => {
+    const access_token = get(auth).Authorization
+    console.log(access_token)
+    try {
+      const options = {
+        path: `/articles/${id}`,
+        access_token: access_token
+      }
+
+      await delApi(options)
+      update(datas => {
+        const newArticleList = datas.articleList.filter(article => article.id != id)
+        datas.articleList = newArticleList // 현재 id를 제외한 게시글목록으로 수정
+        return datas
+      })
+    } catch (error) {
+      
+    }
+  }
   
   return {
     subscribe,
@@ -168,6 +188,7 @@ function setArticles() {
     openEditModeArticle,
     closeEditModeArticle,
     updateArticle,
+    deleteArticle
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
