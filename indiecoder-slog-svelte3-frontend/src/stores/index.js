@@ -208,8 +208,40 @@ function setLoadingArticle() {
     turnOffLoading
   }
 }
+
 /** 게시물 단건에 대한 정보만을 담을 스토어 */
-function setArticleContent() {}
+function setArticleContent() {
+  let initValues = {
+    id:'',
+    userId:'',
+    userEmail:'',
+    content:'',
+    createdAt:'',
+    commentCount:0,
+    likeCount: 0,
+    likeUsers: []
+  }
+
+  const { subscribe, set } = writable({...initValues})
+
+  const getArticle = async (id) => {
+    try {
+      const options = {
+        path: `/articles/${id}`
+      }
+      const getData = await getApi(options)
+      set(getData)
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+
+  return {
+    subscribe,
+    getArticle
+  }
+}
+
 /** 
  * 특정 게시물의 Comment를 담을 스토어
  * 코멘트 추가, 수정, 삭제 등을 처리하는 사용자정의 메소드를 가진다.
