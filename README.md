@@ -1702,6 +1702,132 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
 <br>
 <br>
 
+# 코멘트 관련 기능 구현
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+코멘트의 경우 다른 라우터와 조금 다르게 articles 경로 하위로 배치하게 된다.  
+
+url/**articles**/`comments`/:id
+위와같이 articles 하위에 comments 접속 주소가 호출이 되면 comment 관련 페이지가 출력된다.  
+그리고 컴포넌트 배치 방식도 상이하다.  
+
+## 코멘트 관련 라우터 배치
+- [Articles.svelte](indiecoder-slog-svelte3-frontend/src/pages/Articles.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import Comments from "./Comments.svelte";
+    import { Route } from "tinro";
+  </script>
+
+  <ArticleHeader />
+  <main class="slog-main">
+    <!-- 생략 -->
+    
+    <Route path="/comments/:id">
+      <Comments />
+    </Route>
+  </main>
+  ```
+Articles 컴포넌트 하위에 자식 요소로 라우팅 되는 원리이므로 뒤로가기 등을 했을 때 스크롤이 이전 스크롤을 기억하는것처럼 보이는 장점이 있다.
+즉, Articles의 기존 출력되던 DOM은 그대로 유지된채 그 위에 렌더링 된다.
+
+## article 정보 조회 store 기능 구현
+
+### articleContent store
+게시글 상세보기 안에 comment가 들어온다.  
+게시글의 정보를 출력하기 위해 article의 정보를 개별 조회 한다.  
+setArticleContent 함수에 구현한다.  
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+```js
+/* 생략 */
+function setArticleContent() {
+  let initValues = {
+    id:'',
+    userId:'',
+    userEmail:'',
+    content:'',
+    createdAt:'',
+    commentCount:0,
+    likeCount: 0,
+    likeUsers: []
+  }
+
+  const { subscribe, set } = writable({...initValues})
+
+  const getArticle = async (id) => {
+    try {
+      const options = {
+        path: `/articles/${id}`
+      }
+      const getData = await getApi(options)
+      set(getData)
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+
+  return {
+    subscribe,
+    getArticle
+  }
+}
+/* 생략 */
+export const articleContent = setArticleContent()
+/* 생략 */
+```
+
+### store 컴포넌트 적용
+  - [CommentList.svelte](indiecoder-slog-svelte3-frontend/src/components/CommentList.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import { onMount } from "svelte";
+    import { meta, router } from "tinro";
+    import { articleContent } from "../stores";
+
+    const route = meta()
+    const articleId = Number(route.params.id)
+
+    onMount(() => {
+      articleContent.getArticle(articleId) // store 조회 호출
+    })
+    const goArticles = () => router.goto('/articles')
+    </script>
+
+  <div class="slog-comment-wrap">    
+    <div class="slog-comment-box" >
+      <div class="comment-box-header ">
+        <div class="content-box-header-inner-left" >
+          <p class="p-user" >{$articleContent.userEmail}</p>
+          <p class="p-date" >{$articleContent.createdAt}</p>
+        </div>
+      </div>
+      
+      <div class="comment-box-main ">
+        <p class="whitespace-pre-line">{$articleContent.content}</p>
+        <div class="inner-button-box ">
+          <button class="button-base" on:click={goArticles}>글 목록 보기</button>
+        </div>
+      </div>
+      <!-- 생략 -->
+    </div>
+  </div>
+  ```
+#### CommentLit 컴포넌트 pages/Comments 컴포넌트 등록
+- [comments.svelte](indiecoder-slog-svelte3-frontend/src/pages/Comments.svelte)
+  ```svelte
+  <script>
+      import CommentList from "../components/CommentList.svelte";
+  </script>
+  <CommentList />
+  ```
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
