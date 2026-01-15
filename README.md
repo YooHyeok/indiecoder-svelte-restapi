@@ -1743,7 +1743,8 @@ setArticleContent 함수에 구현한다.
 - [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
 ```js
 /* 생략 */
-function setArticleContent() {
+function setLoadingArticle() {/* 생략 */}
+function setArticleContent() { // 구현
   let initValues = {
     id:'',
     userId:'',
@@ -1774,6 +1775,7 @@ function setArticleContent() {
     getArticle
   }
 }
+function setComments() {/* 생략 */}
 /* 생략 */
 export const articleContent = setArticleContent()
 /* 생략 */
@@ -1824,6 +1826,183 @@ export const articleContent = setArticleContent()
   </script>
   <CommentList />
   ```
+
+## Comment CRUD 기능 구현
+
+### comments store 스켈레톤 코드 작성
+comment의 CRUD 기능으로는 아래 3개의 기능으로 comments store에 구성한다.
+
+#### comments: setComments()
+- `조회` : **fetchComments()**
+- `추가` : **addComment()**
+- `삭제` : **deleteComment()**
+
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  /* 생략 */
+  function setArticleContent() {/* 생략 */}
+  function setComments() { // 구현
+    const { subscribe, update, set } = writable([])
+    const fetchComments = async (id) => {}
+    const addComment = async (articleId, commentContent) => {}
+
+    const deleteComment = async (commentId, articleId) => {}
+
+    return {
+      subscribe,
+      fetchComments,
+      addComment,
+      deleteComment,
+    }
+  }
+  function setAuth() {/* 생략 */}
+  /* 생략 */
+  export const articleContent = setArticleContent()
+  /* 생략 */
+  ```
+
+### comments store 코드 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  /* 생략 */
+  function setArticleContent() {/* 생략 */}
+  function setComments() { // 구현
+    const { subscribe, update, set } = writable([])
+    const fetchComments = async (id) => {
+      try {
+        const options = {
+          path: `/comments/${id}`
+        }
+        const getDatas = await getApi(options)
+        set(getDatas.comments)
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    const addComment = async (articleId, commentContent) => {
+      const access_token = get(auth).Authorization;
+      try {
+        const options = {
+          path: `/comments`,
+          data: {
+            articleId: articleId,
+            content: commentContent
+          },
+          access_token: access_token
+        }
+        const newData = await postApi(options)
+        update(datas => [...datas, newData])
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    const deleteComment = async (commentId, articleId) => {
+      const access_token = get(auth).Authorization;
+      try {
+        const options = {
+          path: `/comments`,
+          data: {
+            commentId: commentId,
+            articleId: articleId,
+          },
+          access_token: access_token
+        }
+        await delApi(options)
+        update(datas => datas.filter(comment => comment.id !== commentId))
+        alert('코멘트가 삭제 되었습니다.')
+      } catch (error) {
+        alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+
+    return {
+      subscribe,
+      fetchComments,
+      addComment,
+      deleteComment,
+    }
+  }
+  function setAuth() {/* 생략 */}
+  /* 생략 */
+  export const articleContent = setArticleContent()
+  /* 생략 */
+  ```
+
+### 컴포넌트 적용
+
+- [CommentList.svelte](indiecoder-slog-svelte3-frontend/src/components/CommentList.svelte)
+```svelte
+<script>
+  /* 생략 */
+  import { /* 생략 */ comments, isLogin } from "../stores";
+  /* 생략 */
+  let values = {
+    formContent: ''
+  }
+  onMount(() => {
+    /* 생략 */
+    comments.fetchComments(articleId)
+  })
+  /* 생략 */
+  const onAddComment = async () => { // 추가
+    await comments.addComment(articleId, values.formContent)
+  }
+  </script>
+<div class="slog-comment-wrap">    
+  <div class="slog-comment-box" >
+    <!-- 생략 -->
+    <div class="commnet-list-box ">
+      <h1 class="comment-title">Comments</h1>
+      <ul class="my-5">
+        {#each $comments as comment, index}
+        <Comment {comment} {articleId}/>
+        {/each}
+      </ul>
+    </div>
+    {#if $isLogin}
+    <div class="comment-box-bottom ">
+      <textarea bind:value={values.formContent} id="message" rows="5" class="slog-content-textarea " placeholder="내용을 입력해 주세요."></textarea>
+      <div class="button-box-full">
+        <button class="button-base" on:click={onAddComment}>입력</button>
+      </div>
+    </div>
+    {/if}
+  </div>
+</div>
+```
+
+
+- [Comment.svelte](indiecoder-slog-svelte3-frontend/src/components/Comment.svelte)
+```svelte
+<script>
+  import { auth, comments } from "../stores";
+  export let comment
+  export let articleId
+  const onDeleteComment = () => {
+    if(confirm('삭제하시겠습니까?')) {
+      comments.deleteComment(comment.id, articleId)
+    }
+  }
+</script>
+<li>
+  <div class="comment-top ">
+    <div class="comment-top-left  ">
+      <p class="p-user" >{comment.userEmail}</p>
+      <p class="p-date-comment" >{comment.createdAt}</p>
+    </div>
+    <div class="comment-top-right ">
+      {#if comment.userId === $auth.id}
+      <button on:click={onDeleteComment}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5" ><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+      </button>
+      {/if}
+    </div>                
+  </div>
+  <div class="comment-bottom ">
+    <p class="whitespace-pre-line">{comment.content}</p>
+  </div>
+</li>
+```
 
 </details>
 <br>
