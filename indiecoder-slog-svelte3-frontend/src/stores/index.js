@@ -174,8 +174,34 @@ function setArticles() {
         return datas
       })
     } catch (error) {
-      
+      alert("삭제 중 오류가 발생했습니다.")  
     }
+  }
+
+  const increArticleCommentCount = (articleId) => {
+    update(datas => {
+      const newArticleList = datas.articleList.map(article => {
+        if (article.id === articleId) {
+          article.commentCount = article.commentCount + 1
+          return article
+        }
+      })
+      datas.articleList = newArticleList
+      return datas
+    })
+  }
+
+  const decreArticleCommentCount = (articleId) => {
+    update(datas => {
+      const newArticleList = datas.articleList.map(article => {
+        if (article.id === articleId) {
+          article.commentCount = article.commentCount - 1
+          return article
+        }
+      })
+      datas.articleList = newArticleList
+      return datas
+    })
   }
   
   return {
@@ -188,7 +214,9 @@ function setArticles() {
     openEditModeArticle,
     closeEditModeArticle,
     updateArticle,
-    deleteArticle
+    deleteArticle,
+    increArticleCommentCount,
+    decreArticleCommentCount
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
@@ -272,6 +300,7 @@ function setComments() {
       }
       const newData = await postApi(options)
       update(datas => [...datas, newData])
+      articles.increArticleCommentCount(articleId)
     } catch (error) {
       alert('오류가 발생했습니다. 다시 시도해 주세요.')
     }
@@ -289,6 +318,7 @@ function setComments() {
       }
       await delApi(options)
       update(datas => datas.filter(comment => comment.id !== commentId))
+      articles.decreArticleCommentCount(articleId)
       alert('코멘트가 삭제 되었습니다.')
     } catch (error) {
       alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.')
