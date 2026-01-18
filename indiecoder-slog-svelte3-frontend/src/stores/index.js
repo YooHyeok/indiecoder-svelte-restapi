@@ -183,8 +183,8 @@ function setArticles() {
       const newArticleList = datas.articleList.map(article => {
         if (article.id === articleId) {
           article.commentCount = article.commentCount + 1
-          return article
         }
+        return article
       })
       datas.articleList = newArticleList
       return datas
@@ -196,8 +196,8 @@ function setArticles() {
       const newArticleList = datas.articleList.map(article => {
         if (article.id === articleId) {
           article.commentCount = article.commentCount - 1
-          return article
         }
+        return article
       })
       datas.articleList = newArticleList
       return datas
