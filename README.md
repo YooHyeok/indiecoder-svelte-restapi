@@ -2004,6 +2004,87 @@ comment의 CRUD 기능으로는 아래 3개의 기능으로 comments store에 �
 </li>
 ```
 
+## Comment 갯수 증가/감소 기능 구현
+
+### articles store 증가, 감소 기능 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+
+```js
+function setCurrentArticlesPage() {/* 생략 */}
+function setArticles() { // 구현
+
+  /* 생략 */
+
+  const deleteArticle = (articleId) => {/* 생략 */}
+
+  const increArticleCommentCount = (ㅑㅇ) => { // 추가
+    update(datas => {
+      const newArticleList = datas.articleList.map(article => {
+        if (article.id === articleId) {
+          article.commentCount = article.commentCount + 1
+        }
+        return article
+      })
+      datas.articleList = newArticleList
+      return datas
+    })
+  }
+
+  const decreArticleCommentCount = (articleId) => { // 추가
+    update(datas => {
+      const newArticleList = datas.articleList.map(article => {
+        if (article.id === articleId) {
+          article.commentCount = article.commentCount - 1
+        }
+        return article
+      })
+      datas.articleList = newArticleList
+      return datas
+    })
+  }
+  
+  return {
+    /* 생략 */
+    deleteArticle,
+    increArticleCommentCount, // 추가
+    decreArticleCommentCount  // 추가
+  }
+
+}
+function setArticleContent() {/* 생략 */}
+```
+
+#### comments store 증가/감소 적용
+위 articles store에 구현한 증가,감소 기능을 comments store에서 comment 추가/삭제 기능에 적용한다.  
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+```js
+function setComments() {
+  /* 생략 */
+  const addComment = async (articleId, commentContent) => {
+    const access_token = get(auth).Authorization;
+    try {
+      /* 생략 */
+      update(datas => [...datas, newData])
+      articles.increArticleCommentCount(articleId) // 추가
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+  const deleteComment = async (commentId, articleId) => {
+    const access_token = get(auth).Authorization;
+    try {
+      /* 생략 */
+      update(datas => datas.filter(comment => comment.id !== commentId))
+      articles.increArticleCommentCount(articleId) // 추가
+      alert('코멘트가 삭제 되었습니다.')
+    } catch (error) {
+      alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+  /* 생략 */
+}
+```
+
 </details>
 <br>
 
