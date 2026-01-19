@@ -2088,6 +2088,159 @@ function setComments() {
 </details>
 <br>
 
+# 좋아요 기능 구현
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+만약 하나의 게시글에 눌려진 전체 좋아요 갯수라면 로그인 정보가 필요하지 않겠으나,
+하나의 게시글에 한명의 사용자가 좋아요 기능을 작동시키기 때문에 좋아요의 모든 기능에는 로그인 된 사용자 정보인 토큰 정보가 필요하다.  
+
+## articles store 좋아요 기능 구현
+
+setArticles 함수내에 좋아요, 좋아요 취소 기능 함수를 구현한다.
+
+- likeArticle
+- cancelLikeArticle
+
+api를 통해 게시글에 해당하는 전체 좋아요 갯수와 로그인한 사용자를 기준으로 좋아요 여부를 db에 저장한다.  
+api 호출 종료 후 재조회 하지 않고 현재 반영한 좋아요 여부와 좋아요 갯수에 대한 데이터를 실제 사용중인 상태값에 update하여 메모리 수정을 통해 재조회 하지 않고 성능 이점을 얻도록 구현한다.  
+
+### 좋아요 likeArticle 구현
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+
+    /* 생략 */
+
+    const decreArticleCommentCount = (articleId) => {/* 생략 */}
+
+    const likeArticle = async (articleId) => {
+      const access_token = get(auth).Authorization
+
+      try {
+        const options = {
+          path: `/likes/add/${articleId}`,
+          access_token: access_token
+        }
+
+        await postApi(options)
+        update(datas => {
+          const newArticles = datas.articleList.map(article => {
+            if (article.id === articleId) { // 좋아요 갯수 증가 및 사용자 좋아요 여부 수정
+              article.likeCount = article.likeCount + 1
+              article.likeMe = true
+            }
+            return article
+          })
+          datas.articleList = newArticles
+          return datas;
+        })
+
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    
+    return {
+      /* 생략 */
+      decreArticleCommentCount,
+      likeArticle
+    }
+  }
+  ```
+### 좋아요 취소 likeArticle 구현  
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setArticles() {
+
+    /* 생략 */
+
+    const likeArticle = (articleId) => {/* 생략 */}
+
+    const cancelLikeArticle = async (articleId) => {
+      const access_token = get(auth).Authorization
+
+      try {
+        const options = {
+          path: `/likes/cancel/${articleId}`,
+          access_token: access_token
+        }
+
+        await postApi(options)
+        update(datas => {
+          const newArticles = datas.articleList.map(article => {
+            if (article.id === articleId) { // 좋아요 갯수 증가 및 사용자 좋아요 여부 수정
+              article.likeCount = article.likeCount - 1
+              article.likeMe = false
+            }
+            return article
+          })
+          datas.articleList = newArticles
+          return datas;
+        })
+
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    
+    return {
+      /* 생략 */
+      likeArticle,
+      cancelLikeArticle
+    }
+  }
+  ```
+### 좋아요, 좋아요취소 store 컴포넌트 적용
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import { /* 생략 */ isLogin } from '../stores'
+    /* 생략 */
+    const goComment = (id) => {/* 생략 */}
+
+    const onLike = (id) => { // 추가
+      if ($isLogin) {
+        articles.likeArticle(id)
+      }
+    }
+    const onCancelLike = (id) => {// 추가
+      if ($isLogin) {
+        articles.cancelLikeArticle(id)
+      }
+    }
+  </script>
+  <!-- 생략 -->
+  <div class="slog-content-box" >
+    <!-- 생략 -->
+    <div class="content-box-bottom">
+      <div class="button-box-inner-left">
+        {#if article.likeMe} <!-- 추가 -->
+        <button class="flex" on:click={() => onCancelLike(article.id)/* 연동 */}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+            <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
+          </svg> 
+          <p class="text-base" >{article.likeCount}</p> 
+        </button>
+        {:else} <!-- 추가 -->
+        <button class="flex" on:click={() => onLike(article.id) /* 연동 */}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1 cursor-pointer" >
+            <path d="M12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412l7.332 7.332c.17.299.498.492.875.492a.99.99 0 0 0 .792-.409l7.415-7.415c2.354-2.354 2.354-6.049-.002-8.416a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595zm6.791 1.61c1.563 1.571 1.564 4.025.002 5.588L12 18.586l-6.793-6.793c-1.562-1.563-1.561-4.017-.002-5.584.76-.756 1.754-1.172 2.799-1.172s2.035.416 2.789 1.17l.5.5a.999.999 0 0 0 1.414 0l.5-.5c1.512-1.509 4.074-1.505 5.584-.002z"></path>
+          </svg>
+          <p class="text-base" >{article.likeCount}</p> 
+        </button>
+        {/if}
+      </div>
+      <!-- 생략 -->
+    </div>
+  </div>
+  ```
+</details>
+<br>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
