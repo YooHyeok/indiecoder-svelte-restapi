@@ -203,6 +203,60 @@ function setArticles() {
       return datas
     })
   }
+
+  const likeArticle = async (articleId) => {
+    const access_token = get(auth).Authorization
+
+    try {
+      const options = {
+        path: `/likes/add/${articleId}`,
+        access_token: access_token
+      }
+
+      await postApi(options)
+      update(datas => {
+        const newArticles = datas.articleList.map(article => {
+          if (article.id === articleId) {
+            article.likeCount = article.likeCount + 1
+            article.likeMe = true
+          }
+          return article
+        })
+        datas.articleList = newArticles
+        return datas;
+      })
+
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
+
+  const cancelLikeArticle = async (articleId) => {
+    const access_token = get(auth).Authorization
+
+    try {
+      const options = {
+        path: `/likes/cancel/${articleId}`,
+        access_token: access_token
+      }
+
+      await postApi(options)
+      update(datas => {
+        const newArticles = datas.articleList.map(article => {
+          if (article.id === articleId) { // 좋아요 갯수 증가 및 사용자 좋아요 여부 수정
+            article.likeCount = article.likeCount - 1
+            article.likeMe = false
+          }
+          return article
+        })
+        datas.articleList = newArticles
+        return datas;
+      })
+
+    } catch (error) {
+      alert('오류가 발생했습니다. 다시 시도해 주세요.')
+    }
+  }
   
   return {
     subscribe,
@@ -216,7 +270,9 @@ function setArticles() {
     updateArticle,
     deleteArticle,
     increArticleCommentCount,
-    decreArticleCommentCount
+    decreArticleCommentCount,
+    likeArticle,
+    cancelLikeArticle
   }
 }
 /** 게시물 데이터를 조회할 때 서버와 통신중이라면 로딩상태를 표시하는 기능을 하는 스토어 */
