@@ -1700,7 +1700,6 @@ isLogin store를 import한 후 조건문으로 컴포넌트를 렌더링하도�
 ```
 </details>
 <br>
-<br>
 
 # 코멘트 관련 기능 구현
 <details>
@@ -2239,6 +2238,131 @@ api 호출 종료 후 재조회 하지 않고 현재 반영한 좋아요 여부�
   ```
 </details>
 <br>
+
+# 보기모드 변경 구현
+<details>
+<summary>접기/펼치기</summary>
+<br>
+ 
+현재 서비스는 모든 게시글을 보는 기능인 모두보기만 헤더에 활성화 되어 있다.  
+![alt text](image-2.png)
+
+모두 보기 우측으로 좋아요 보기, 내글 보기 메뉴는 존재하지만 구현되어있지 않다.  
+
+- 전체 글 목록
+  - localhost:3000/articles/?pageNumber=1
+- 내가 작성한 글 목록
+  - localhost:3000/articles/?pageNumber=1&mode='my'  
+    url query string으로 mode='my'를 추가하여 조회한다.
+- 좋아요한 글 목록
+  - localhost:3000/likes/?pageNumber=1
+    호출 주소가 article이 아닌 likes를 통해 요청한다.  
+
+```js
+let path = `/articles/?pageNumber=${currentPage}`
+const options = { path:path }
+```
+현재 url은 위와 같이 path가 고정되어 있다.  
+보기 모드에 따라 전체 글, 내 글, 좋아요 글 같이 목록이 달라지게 하기 위해서는 조건문으로 분기하여 path를 변경핸다.  
+이를 위해서 store를 수정해야 한다.  
+
+### 글 목록 옵션 상수 정의
+store를 수정하기 전 해당 옵션에 대한 상수값을 만든다.  
+일정한 규칙으로 동일하게 코딩되어야 하는데 해당 값을 매번 수동으로 입력하다 보면 오류가 발생할 수 있어 이를 방지하고 어떤 옵션이 있는지 쉽게 찾을 수 있다.  
+
+- `ALL`: 전체 글 목록
+- `MY`: 내 글 목록
+- `LIKE`: 좋아요 글 목록
+
+### 상수 파일 추가
+- [src/utils/constant.js](indiecoder-slog-svelte3-frontend/src/utils/constant.js)
+  ```js
+  export const ALL = 'all'
+  export const LIKE = 'like'
+  export const MY = 'my'
+  ```
+
+### store에 import
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+```js
+/* 생략 */
+import { router } from 'tinro'
+import {ALL, LIKE, MY } from '../utils/constant'
+
+function setCurrentArticlesPage() {/* 생략 */}
+/* 생략 */
+```
+
+### 모드 기능 articleMode store 구현
+mode를 변경하는 setArticlesMode 함수를 구현한다.  
+변경된 mode를 기준으로 조건 분기처리한 url을 통해 게시물을 조회를 하게 된다.  
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+```js
+/* 생략 */
+import { router } from 'tinro'
+import {ALL, LIKE, MY } from '../utils/constant'
+/* 생략 */
+
+function setAuth() {/* 생략 */}
+function setArticlesMode() {
+  const { subscribe, update, set } = writable(ALL)
+  const changeMode = async (mode) => {
+    set(mode)
+    articles.resetArticles()
+    await articles.fetchArticles()
+  }
+  return {
+    subscribe,
+    changeMode
+  }
+}
+function setIsLogin() {/* 생략 */}
+
+export const auth = setAuth()
+export const articlesMode = setArticlesMode()
+export const isLogin = setIsLogin()
+```
+
+### 모드 기능 articleMode store 구현
+setArticlesMode 함수를 구현한다.  
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+```js
+/* 생략 */
+import { router } from 'tinro'
+import {ALL, LIKE, MY } from '../utils/constant'
+/* 생략 */
+
+function setCurrentArticlesPage() {/* 생략 */}
+function setArticles() { // 구현
+
+  /* 생략 */
+
+  const fetchArticles = async () => {
+    const currentPage = get(currentArticlesPage) 
+
+    // let path = `/articles/?pageNumber=${currentPage}`
+    let path = '';
+    const mode = get(articlesMode)
+
+    switch(mode) {
+      case ALL:
+        path = `/articles/?pageNumber=${currentPage}`
+        break
+      case LIKE:
+        path = `/likes/?pageNumber=${currentPage}`
+        break
+      case MY:
+        path = `/articles/?pageNumber=${currentPage}&mode=${mode}`
+        break
+    }
+    /* 생략 */
+  }
+  /* 생략 */
+}
+function setArticleContent() {/* 생략 */}
+```
+
+</details>
 <br>
 
 # Template
