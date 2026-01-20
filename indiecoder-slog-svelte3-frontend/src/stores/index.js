@@ -1,6 +1,8 @@
 import { writable, get, derived } from 'svelte/store'
 import { getApi, putApi, delApi, postApi } from '../service/api.js'
 import { router } from 'tinro'
+import { subscribe } from 'svelte/internal'
+import { ALL, LIKE, MY } from '../utils/constant'
 
 /** 게시물 스크롤시 페이지 증가 */
 function setCurrentArticlesPage() {
@@ -39,7 +41,21 @@ function setArticles() {
   const fetchArticles = async () => {
     const currentPage = get(currentArticlesPage) // 다른 store에서 값을 참조하는 경우 혹은 svelte파일이 아닌 일반 js 모듈에서 store값을 참조하는 경우 get을 사용
     loadingArticle.turnOnLoading()
-    let path = `/articles/?pageNumber=${currentPage}`
+    // let path = `/articles/?pageNumber=${currentPage}`
+    let path = '';
+    const mode = get(articlesMode)
+
+    switch (mode) {
+      case ALL:
+        path = `/articles/?pageNumber=${currentPage}`
+        break
+      case LIKE:
+        path = `/likes/?pageNumber=${currentPage}`
+        break
+      case MY:
+        path = `/articles/?pageNumber=${currentPage}&mode=${mode}`
+        break
+    }
     try {
       const access_token = get(auth).Authorization
       const options = {
@@ -470,7 +486,18 @@ function setAuth() {
  * 보기 상태를 나타내는 스토어
  * 보기 모드: [모두보기, 좋아요보기, 내글보기]
  */
-function setArticlesMode() {}
+function setArticlesMode() {
+  const { subscribe, update, set } = writable(ALL)
+  const changeMode = async (mode) => {
+    set(mode)
+    articles.resetArticles()
+    await articles.fetchArticles()
+  }
+  return {
+    subscribe,
+    changeMode
+  }
+}
 /** 로그인 상태여부 확인 스토어 */
 function setIsLogin() {
   // const checkLogin = derived(auth, $auth => $auth.Authorization ? true : false)
