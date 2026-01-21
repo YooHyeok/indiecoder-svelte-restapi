@@ -79,7 +79,14 @@ const logout = async (req, rep) => {
       }
     })
 
-    rep.clearCookie('refresh_token', { path: '/' })
+    // rep.clearCookie('refresh_token', { path: '/' })
+    rep.clearCookie('refresh_token', {
+      domain: 'localhost',
+      path: '/',
+      secure: true,
+      sameSite: 'none',
+      httpOnly: true,
+    })
 
     return appMessages.logouOk
   }
