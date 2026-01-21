@@ -436,6 +436,7 @@ function setAuth() {
         }
       }
       const result = await postApi(options)
+      if (!result) throw new Error()
       set(result) // Authorization(AccessToken) 초기화
       isRefresh.set(true) // refresh 호출여부 on
       router.goto('/articles') // 라우터의 goto를 이용하여 게시글 목록 화면으로 이동
@@ -451,7 +452,8 @@ function setAuth() {
       await delApi(options)
       set({ ...initValues })
       isRefresh.set(false) // refresh 호출여부 off
-      router.goto('/') // 라우터의 goto를 이용하여 메인 화면으로 이동
+      // router.goto('/') // 라우터의 goto를 이용하여 메인 화면으로 이동
+      articlesMode.changeMode(ALL) // [14] 보기모드 변경
     } catch (error) {
       alert('오류가 발생했습니다. 다시 시도해 주세요.')
     }
