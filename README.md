@@ -2283,84 +2283,143 @@ store를 수정하기 전 해당 옵션에 대한 상수값을 만든다.
   ```
 
 ### store에 import
-- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
-```js
-/* 생략 */
-import { router } from 'tinro'
-import {ALL, LIKE, MY } from '../utils/constant'
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  /* 생략 */
+  import { router } from 'tinro'
+  import {ALL, LIKE, MY } from '../utils/constant'
 
-function setCurrentArticlesPage() {/* 생략 */}
-/* 생략 */
-```
+  function setCurrentArticlesPage() {/* 생략 */}
+  /* 생략 */
+  ```
 
 ### 모드 기능 articleMode store 구현
 mode를 변경하는 setArticlesMode 함수를 구현한다.  
 변경된 mode를 기준으로 조건 분기처리한 url을 통해 게시물을 조회를 하게 된다.  
-- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
-```js
-/* 생략 */
-import { router } from 'tinro'
-import {ALL, LIKE, MY } from '../utils/constant'
-/* 생략 */
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  /* 생략 */
+  import { router } from 'tinro'
+  import {ALL, LIKE, MY } from '../utils/constant'
+  /* 생략 */
 
-function setAuth() {/* 생략 */}
-function setArticlesMode() {
-  const { subscribe, update, set } = writable(ALL)
-  const changeMode = async (mode) => {
-    set(mode)
-    articles.resetArticles()
-    await articles.fetchArticles()
+  function setAuth() {/* 생략 */}
+  function setArticlesMode() {
+    const { subscribe, update, set } = writable(ALL)
+    const changeMode = async (mode) => {
+      set(mode)
+      articles.resetArticles()
+      await articles.fetchArticles()
+    }
+    return {
+      subscribe,
+      changeMode
+    }
   }
-  return {
-    subscribe,
-    changeMode
-  }
-}
-function setIsLogin() {/* 생략 */}
+  function setIsLogin() {/* 생략 */}
 
-export const auth = setAuth()
-export const articlesMode = setArticlesMode()
-export const isLogin = setIsLogin()
-```
+  export const auth = setAuth()
+  export const articlesMode = setArticlesMode()
+  export const isLogin = setIsLogin()
+  ```
 
 ### 모드 기능 articleMode store 구현
 setArticlesMode 함수를 구현한다.  
-- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
-```js
-/* 생략 */
-import { router } from 'tinro'
-import {ALL, LIKE, MY } from '../utils/constant'
-/* 생략 */
-
-function setCurrentArticlesPage() {/* 생략 */}
-function setArticles() { // 구현
-
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  /* 생략 */
+  import { router } from 'tinro'
+  import {ALL, LIKE, MY } from '../utils/constant'
   /* 생략 */
 
-  const fetchArticles = async () => {
-    const currentPage = get(currentArticlesPage) 
+  function setCurrentArticlesPage() {/* 생략 */}
+  function setArticles() { // 구현
 
-    // let path = `/articles/?pageNumber=${currentPage}`
-    let path = '';
-    const mode = get(articlesMode)
+    /* 생략 */
 
-    switch(mode) {
-      case ALL:
-        path = `/articles/?pageNumber=${currentPage}`
-        break
-      case LIKE:
-        path = `/likes/?pageNumber=${currentPage}`
-        break
-      case MY:
-        path = `/articles/?pageNumber=${currentPage}&mode=${mode}`
-        break
+    const fetchArticles = async () => {
+      const currentPage = get(currentArticlesPage) 
+
+      // let path = `/articles/?pageNumber=${currentPage}`
+      let path = '';
+      const mode = get(articlesMode)
+
+      switch(mode) {
+        case ALL:
+          path = `/articles/?pageNumber=${currentPage}`
+          break
+        case LIKE:
+          path = `/likes/?pageNumber=${currentPage}`
+          break
+        case MY:
+          path = `/articles/?pageNumber=${currentPage}&mode=${mode}`
+          break
+      }
+      /* 생략 */
     }
     /* 생략 */
   }
-  /* 생략 */
-}
-function setArticleContent() {/* 생략 */}
-```
+  function setArticleContent() {/* 생략 */}
+  ```
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import { /* 생략 */
+      isLogin, articlesMode } from '../stores'
+    import { ALL, LIKE, MY } from '../utils/constant';
+
+    /* 생략 */
+    const onChangeMode = (mode) => {
+      if ($articlesMode !== mode) articlesMode.changeMode(mode)
+    }
+  </script>
+  <header class="main-header">
+    <p class="p-main-title" >SLogs</p>
+    <nav class="main-nav">
+      <button class="main-menu mr-6" class:main-menu-selected={$articlesMode === ALL} on:click={() => onChangeMode(ALL)} >모두 보기</button>
+      {#if $isLogin}
+      <button class="main-menu mr-6" class:main-menu-selected={$articlesMode === LIKE} on:click={() => onChangeMode(LIKE)}>좋아요 보기</button>
+      <button class="main-menu " class:main-menu-selected={$articlesMode === MY} on:click={() => onChangeMode(MY)}>내글 보기</button>
+      {:else}
+      <button class="main-menu mr-6">좋아요 보기</button>
+      <button class="main-menu main-menu-blocked" >내글 보기</button>
+      {/if}  
+    </nav>
+    <!-- 생략 -->
+  </header>
+  ```
+
+### 로그아웃시 전체 모드 변경
+- [stores/index.js](indiecoder-slog-svelte3-frontend/src/stores/index.js)
+  ```js
+  function setComments() {/* 생략 */}
+
+  function setAuth() {
+    /* 생략 */
+    const login = async (email, password) => {/* 생략 */}
+    const logout = async () => {
+      try {
+        /* 생략 */
+        isRefresh.set(false) // refresh 호출여부 off
+        articlesMode.changeMode(ALL) // 보기모드 변경
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.')
+      }
+    }
+    /* 생략 */
+    return {
+      subscribe,
+      refresh,
+      login,
+      logout,
+      resetUserInfo,
+      register
+    }
+  }
+
+  function setArticlesMode() {/* 생략 */}
+  ```
 
 </details>
 <br>
