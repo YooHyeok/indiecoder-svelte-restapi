@@ -37,7 +37,7 @@ src/components 디렉토리 하위에 10개 컴포넌트를 구성한다.
 │  ├─ styles
 │  │  └─ main.css
 │  ├─ App.svelte
-│  └─ Main.svelte
+│  └─ main.js
 ├─ index.html
 ├─ package.json
 └─ rollup.config.js
@@ -113,7 +113,7 @@ src/pages 디렉토리 하위에 4개 컴포넌트를 구성한다.
 │  ├─ styles
 │  │  └─ main.css
 │  ├─ App.svelte
-│  ├─ Main.svelte
+│  └─ main.js
 │  └─ router.svelte // 생성
 ├─ package.json
 └─ rollup.config.js
@@ -279,7 +279,7 @@ src 디렉토리 하위에 service 디렉토리를 구성하고 그 하위에 ap
 │  ├─ styles
 │  │  └─ main.css
 │  ├─ App.svelte
-│  ├─ Main.svelte
+│  └─ main.js
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
@@ -364,7 +364,7 @@ src 디렉토리 하위에 stores 디렉토리를 구성하고 그 하위에 ind
 │  ├─ styles
 │  │  └─ main.css
 │  ├─ App.svelte
-│  ├─ Main.svelte
+│  └─ main.js
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
@@ -2275,6 +2275,28 @@ store를 수정하기 전 해당 옵션에 대한 상수값을 만든다.
 - `LIKE`: 좋아요 글 목록
 
 ### 상수 파일 추가
+
+```
+설치경로
+├─ node_modules
+├─ public
+├─ scrtips
+├─ src
+│  ├─ components
+│  ├─ pages
+│  ├─ service
+│  ├─ stores
+│  ├─ styles
+│  ├─ utils // 디렉토리 생성(하위 포함)
+│  │  └─ constant.js
+│  ├─ App.svelte
+│  └─ main.js
+│  └─ router.svelte
+├─ index.html
+├─ package.json
+└─ rollup.config.js
+```
+
 - [src/utils/constant.js](indiecoder-slog-svelte3-frontend/src/utils/constant.js)
   ```js
   export const ALL = 'all'
@@ -2420,6 +2442,128 @@ setArticlesMode 함수를 구현한다.
 
   function setArticlesMode() {/* 생략 */}
   ```
+
+</details>
+<br>
+
+# 폼 검증
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+현재 로그인 혹은 게시글을 작성할 때 공백이거나 형식에 맞지 않는 내용을 입력해도 바로 서버에 그 값을 전송하게 된다.  
+아래 AuthLogin.svelte에서 로그인 코드를 보면 그냥 전송하는것을 확인할 수 있다.  
+```svelte
+<script>
+  import { auth } from '../stores'
+
+  /** 입력값과 연결할 상태값 */
+  let values = {
+    formEmail: '',
+    formPassword: ''
+  }
+
+  /** values 초기화 메소드 */
+  const resetValues = () => {
+    values.formEmail = '';
+    values.formPassword = ''
+  }
+
+  /** 로그인 요청 메소드 */
+  const onLogin = async () => {
+    try {
+      await auth.login(values.formEmail, values.formPassword)
+      resetValues();
+    } catch (error) {
+      alert('인증이 되지 않았습니다. 다시 시도해주세요.')
+    }
+  }
+
+</script>
+```
+
+물론 비정상적인 값을 서버에 보내면 서버가 그에 맞는 오류를 리턴하지만 매번 비정상적인 값을 서버에 보내는 것은 자원 낭비이며 보안적인 이슈가 될 수 있다.  
+이런경우 필요한 기능이 바로 form validation 즉, 폼 검증이다.  
+
+## yup
+폼 검증을 하기 위해 필요한 매우 범용적인 라이브러리이다.  
+svelte가 아니더라도 react나 vue 혹은 nodejs기반의 백엔드 서버에서도 사용할 수 있는 라이브러리이다.  
+```bash
+npm install yup
+```
+### yup 사용법
+```js
+let formName = 
+yup.object().shape({
+  formName: yup.string() // 검증 요소
+  .required('이메일을 입력해주세요.')
+  .email('이메일 형식이 잘 못 되었습니다.')
+  .label('이메일')
+})
+```
+먼저 yup의 object() 메소드를 호출한 뒤 이어 체이닝을 통해 shape() 메소드를 호출하며 해당 메소드 내에 객체 형태로 검증 요소를 전달한다.  
+검증 요소를 자세히 분석해보면, formName이라는 값을 검증하며 체이닝 형태로 string()을 통해 string타입 여부를 검증하고 required()를 이용하여 null을 불허한다.  
+또한 email()을 통해 이메일 형식에 맞는지 검증을 거치며, 모두에 해당하지 않을 경우 오류를 발생시키고 각 메소드에 전달한 문자열을 오류 메시지로 출력한다.  
+여기서 label()은 에러 메시지에서 해당 값을 부를 때 사용하는 이름표이다.  
+만약 `yup.string().required()`와 같이 메시지를 지정하지 않은 기본 형태의 required 검증에서 에러가 난다면 `this is required` 라는 메시지가 출력되지만, `yup.string().required().label('이메일')` 일때 출력되는 메시지는 `이메일 is a required field` 즉, this 자리에 label이 들어가게 된다.  
+
+
+### 검증 모듈 생성 및 구현
+
+```
+설치경로
+├─ node_modules
+├─ public
+├─ scrtips
+├─ src
+│  ├─ components
+│  ├─ pages
+│  ├─ service
+│  ├─ stores
+│  ├─ styles
+│  ├─ utils 
+│  │  ├─ validates.js // 추가
+│  │  └─ constant.js
+│  ├─ App.svelte
+│  └─ main.js
+│  └─ router.svelte
+├─ index.html
+├─ package.json
+└─ rollup.config.js
+```
+
+```js
+```
+= [utils/validates.js](indiecoder-slog-svelte3-frontend/src/utils/validates.js)
+  ```js
+  import * as yup from 'yup'
+  export const contentValidate = yup.object().shape({
+    formContent: yup.string().required('내용을 입력해 주세요.').label('내용')
+  })
+  export const loginValidate = yup.object().shape({
+    formEmail: yup.string().required('이메일을 입력해 주세요.').email('이메일 형식이 잘 못 되었습니다.').label('이메일'),
+    formPassword: yup.string().required('패스워드를 입력해 주세요.').label('패스워드')
+  })
+  export const registerValidate = yup.object().shape({
+    formEmail: yup.string().required('이메일을 입력해 주세요.').email('이메일 형식이 잘 못 되었습니다.'),
+    formPassword: yup.string().required('패스워드를 입력해 주세요.'),
+    formPasswordConfirm: yup.string().required('패스워드확인을 입력해 주세요.')
+      .oneOf([yup.ref('formPassword'), null], '패스워드와 패스워드 확인이 일치하지 않습니다.')
+      .label('패스워드 확인')
+  })
+
+  /**
+   * extractErrors  
+   * form마다 발생되는 오류를 reduce를 이용해 한 번에 모아주는 역할을 하는 함수이다.  
+   * 이렇게 모아야 한번에 오류가 난 form들을 표시할 수 있다.  
+   */
+  export const extractErrors = error => { // 
+    return error.inner.reduce((acc, error) => {
+      return {...acc, [error.path]: error.message}
+    }, {})
+  }
+  ```
+
 
 </details>
 <br>
