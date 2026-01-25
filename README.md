@@ -2446,7 +2446,7 @@ setArticlesMode 함수를 구현한다.
 </details>
 <br>
 
-# 폼 검증
+# 앱 고도화: 폼 검증
 <details>
 <summary>접기/펼치기</summary>
 <br>
@@ -2508,7 +2508,7 @@ yup.object().shape({
 만약 `yup.string().required()`와 같이 메시지를 지정하지 않은 기본 형태의 required 검증에서 에러가 난다면 `this is required` 라는 메시지가 출력되지만, `yup.string().required().label('이메일')` 일때 출력되는 메시지는 `이메일 is a required field` 즉, this 자리에 label이 들어가게 된다.  
 
 
-### 검증 모듈 생성 및 구현
+## yup 검증 모듈 생성 및 구현
 
 ```
 설치경로
@@ -2531,10 +2531,9 @@ yup.object().shape({
 ├─ package.json
 └─ rollup.config.js
 ```
-
-```js
-```
-= [utils/validates.js](indiecoder-slog-svelte3-frontend/src/utils/validates.js)
+### 모듈 구현
+게시글(코멘트), 로그인, 회원가입에 대한 각각의 검증 스키마들을 구현하고, form마다 발생되는 오류를 reduce를 통해 한번에 수집하는 extractErrors라는 유틸 함수를 같이 구현한다.  
+- [utils/validates.js](indiecoder-slog-svelte3-frontend/src/utils/validates.js)
   ```js
   import * as yup from 'yup'
   export const contentValidate = yup.object().shape({
@@ -2552,11 +2551,6 @@ yup.object().shape({
       .label('패스워드 확인')
   })
 
-  /**
-   * extractErrors  
-   * form마다 발생되는 오류를 reduce를 이용해 한 번에 모아주는 역할을 하는 함수이다.  
-   * 이렇게 모아야 한번에 오류가 난 form들을 표시할 수 있다.  
-   */
   export const extractErrors = error => { // 
     return error.inner.reduce((acc, error) => {
       return {...acc, [error.path]: error.message}
@@ -2564,9 +2558,69 @@ yup.object().shape({
   }
   ```
 
+### 모듈 컴포넌트 적용
+회원가입을 대표 예시로 둔다.  
+- [AuthRegister.svelte](indiecoder-slog-svelte3-frontend/src/components/AuthRegister.svelte)
+  ```svelte
+  <script>
+    import { auth } from '../stores'
+    import { registerValidate, extractErrors } from '../utils/validates';
+    let errors = {}
 
+    let values = {
+      formEmail: '',
+      formPassword: '',
+      formPasswordConfirm: '',
+    }
+    const onRegister = async () => {
+      try {
+        await registerValidate.validate(values, {abortEarly: false /* 오류 벌크/개별 처리 여부 - false=모든form검증 및 오류 발생 */})
+        await auth.register(values.formEmail, values.formPassword)
+      } catch (error) {
+        alert('회원가입에 실패했습니다. 다시 시도해 주세요.')
+        errors = extractErrors(error)
+        if (errors.formEmail) alert (errors.formEmail)
+        if (errors.formPassword) alert (errors.formPassword)
+        if (errors.formPasswordConfirm) alert (errors.formPasswordConfirm)
+      }
+    }
+  </script>
+  <div class="auth-content-box" >        
+    <div class="auth-box-main">
+      <div class="auth-input-box">
+        <input type="email" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formEmail} class:wrong={errors.formEmail}/>
+        <label for="floating_email" class="auth-input-label">이메일</label>
+      </div>      
+      <div class="auth-input-box">
+        <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPassword} class:wrong={errors.formPassword}/>
+        <label for="floating_email" class="auth-input-label">비밀번호</label>
+      </div>      
+      <div class="auth-input-box">
+        <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPasswordConfirm} class:wrong={errors.formPasswordConfirm}/>
+        <label for="floating_email" class="auth-input-label">비밀번호 확인</label>
+      </div>                              
+    </div>
+    <div class="content-box-bottom">
+      <div class="button-box">
+        <button class="button-base" on:click={onRegister}>회원가입</button>
+      </div>
+    </div>
+  </div>
+  <style>
+  .wrong {
+    border-bottom: 3px solid red;
+  }
+  </style>
+  ```
+
+위와 같이 실제 api를 호출하기 전에 먼저 validate 해준 뒤 catch블록에서 extractErrors를 통해 폼 검증 중 발생한 모든 오류를 수집하여 경고창을 출력해준다.  
+(참고로 yup의 validate는 스키마로 등록된 모든 검증에 대해 배열 형태로 수집하여 하나의 error 객체를 catch로 던진다.)
+
+
+이외의 다른 컴포넌트 ([ArticleAddForm.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleAddForm.svelte) ,[AuthLogin.svelte](indiecoder-slog-svelte3-frontend/src/components/AuthLogin.svelte) , [CommentList.svelte](indiecoder-slog-svelte3-frontend/src/components/CommentList.svelte) 등) 에서도 동일한 패턴으로 적용한다.
 </details>
 <br>
+
 
 # Template
 <details>
