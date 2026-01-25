@@ -1,5 +1,8 @@
 <script>
   import { auth } from '../stores'
+  import { loginValidate, extractErrors } from '../utils/validates';
+
+  let errors = {}
 
   /** 입력값과 연결할 상태값 */
   let values = {
@@ -16,10 +19,14 @@
   /** 로그인 요청 메소드 */
   const onLogin = async () => {
     try {
+      await loginValidate.validate(values, {abortEarly: false /* 오류 벌크/개별 처리 여부 - false=모든form검증 및 오류 발생 */})
       await auth.login(values.formEmail, values.formPassword)
       resetValues();
     } catch (error) {
       alert('인증이 되지 않았습니다. 다시 시도해주세요.')
+      errors = extractErrors(error)
+      if (errors.formEmail) alert (errors.formEmail)
+      if (errors.formPassword) alert (errors.formPassword)
     }
   }
 
@@ -29,11 +36,11 @@
 <div class="auth-content-box " >        
   <div class="auth-box-main">
     <div class="auth-input-box">
-      <input type="email" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formEmail} />
+      <input type="email" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formEmail} class:wrong={errors.formEmail} />
       <label for="floating_email" class="auth-input-label">이메일</label>
     </div>      
     <div class="auth-input-box">
-      <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPassword} />
+      <input type="password" name="floating_email" id="floating_email" class="auth-input-text peer" placeholder=" " bind:value={values.formPassword} class:wrong={errors.formPassword}/>
       <label for="floating_email" class="auth-input-label">비밀번호</label>
     </div>    
   </div>
@@ -44,3 +51,8 @@
   </div>
 </div>
 <!-- login-box end-->
+<style>
+.wrong {
+  border-bottom: 3px solid red;
+}
+</style>
