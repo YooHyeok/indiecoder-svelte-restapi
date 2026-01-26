@@ -3,7 +3,10 @@
   export let article
   import { articles, auth, isLogin } from '../stores'
   import ArticleEditForm from './ArticleEditForm.svelte'
+  import dateView from '../utils/date';
+
   let isViewMenu = false // true일 경우 context 버튼 출력
+
   $: {
     if ($articles.menuPopup === article.id) {
       isViewMenu = true
@@ -11,6 +14,7 @@
       isViewMenu = false
     }
   }
+
   const onToggleMenuPopup = (id) => {
     if (isViewMenu === true) {
       articles.closeMenuPopup()
@@ -18,14 +22,17 @@
     }
     articles.openMenuPopup(id)
   }
+
   const onEditModeArticle = (id) => {
     articles.openEditModeArticle(id)
   }
+
   const onDeleteArticle = (id) => {
     if (confirm('삭제 하시겠습니까?')) {
       articles.deleteArticle(id)
     }
   }
+
   const goComment = (id) => {
     router.goto(`/articles/comments/${id}`)
   }
@@ -35,11 +42,13 @@
       articles.likeArticle(id)
     }
   }
+
   const onCancelLike = (id) => {
     if ($isLogin) {
       articles.cancelLikeArticle(id)
     }
   }
+
 </script>
 <!-- articles.html -->
 <!-- slog-content-box start-->
@@ -50,7 +59,7 @@
   <div class="content-box-header">
     <div class="content-box-header-inner-left " >
       <p class="p-user" >{article.userEmail}</p>
-      <p class="p-date" >{article.createdAt}</p>
+      <p class="p-date" >{dateView(article.createdAt)}</p>
     </div>
     {#if article.userId === $auth.id}
     <div class="content-box-header-inner-right">

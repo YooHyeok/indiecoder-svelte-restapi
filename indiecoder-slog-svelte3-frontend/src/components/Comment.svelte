@@ -1,5 +1,7 @@
 <script>
   import { auth, comments } from "../stores";
+ import dateView from "../utils/date";
+
   export let comment
   export let articleId
   const onDeleteComment = () => {
@@ -14,7 +16,7 @@
   <div class="comment-top ">
     <div class="comment-top-left  ">
       <p class="p-user" >{comment.userEmail}</p>
-      <p class="p-date-comment" >{comment.createdAt}</p>
+      <p class="p-date-comment" >{dateView(comment.createdAt)}</p>
     </div>
     <div class="comment-top-right ">
       {#if comment.userId === $auth.id}
