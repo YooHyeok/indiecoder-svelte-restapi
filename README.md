@@ -2621,6 +2621,78 @@ yup.object().shape({
 </details>
 <br>
 
+# 앱 고도화: 날짜 보기 (dayjs)
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+현재 서비스에서 작성일자는 작성된 전체 날짜 및 시간을 출력해준다.  
+전체 날짜를 보여주는것도 좋지만, 2일전 혹은 1시간 전 등으로 표시한다면 좀 더 직관적으로 사용자가 인식할 수 있을것이다.  
+dayjs가 바로 이런 기능을 지원해준다.  
+
+## dayjs
+```bash
+npm install dayjs
+```
+
+## dayjs 모듈 생성 및 구현
+```
+설치경로
+├─ node_modules
+├─ public
+├─ scrtips
+├─ src
+│  ├─ components
+│  ├─ pages
+│  ├─ service
+│  ├─ stores
+│  ├─ styles
+│  ├─ utils 
+│  │  ├─ validates.js
+│  │  ├─ date.js // 추가
+│  │  └─ constant.js
+│  ├─ App.svelte
+│  └─ main.js
+│  └─ router.svelte
+├─ index.html
+├─ package.json
+└─ rollup.config.js
+```
+
+### 모듈 구현
+직관적으로 얼마만큼의 시간이 흘렀는지 출력하기 위해서는 단순히 dayjs만 사용하는것이 아닌 dayjs 내 relativeTime이라는 플러그인을 함께 사용해아 한다.  
+또한 utc 플러그인도 함께 적용해야 하며, DB 등에 저장되어 활용되는 데이터가 UTC 형태일 경우 적용하면 된다.  
+- [utils/date.js](indiecoder-slog-svelte3-frontend/src/utils/date.js)
+  ```js
+  import dayjs from "dayjs";
+  import relativeTime from "dayjs/plugin/relativeTime"
+  import utc from "dayjs/plugin/utc"
+  import "dayjs/locale/ko"
+
+  function dateView(date) {
+    dayjs.extend(utc)
+    dayjs.locale('ko')
+    dayjs.extend(relativeTime)
+
+    return dayjs().to(dayjs(date).utc().format('YYYY-MM-DD HH:mm:ss'))
+  }
+  export default dateView
+  ```
+
+### 컴포넌트 적용 예제
+아래는 dateView를 컴포넌트에 적용한 간단한 예제이다.
+```svelte
+<script>
+  import dateView from './utils/date.js';
+  let time = '2026-01-26T06:30:00Z'
+</script>
+<p>{dateView(time)}</p>
+```
+
+[Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte) ,[Comment.svelte](indiecoder-slog-svelte3-frontend/src/components/Comment.svelte) , [CommentList.svelte] 에서 날짜 영역에 동일한 패턴으로 적용한다.
+
+</details>
+<br>
 
 # Template
 <details>
