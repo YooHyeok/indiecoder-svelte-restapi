@@ -2694,6 +2694,152 @@ npm install dayjs
 </details>
 <br>
 
+# 앱 고도화: URL을 통한 보기모드 변경
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+현재 보기모드는 아래와같이 MODE를 변경하여 조건부로 api 주소를 변경하여 리스트의 데이터를 출력하는 형태이다.  
+이 경우 api가 아닌 브라우저 url을 다시 붙여넣거나 새로고침을 할 경우 상태값이 모두 초기화되어 모두보기로 돌아가게된다.  
+MODE값 자체를 store에서 기억해두면 상관없지만, url 자체에서 제어되도록 할수 있다.  
+```svelte
+<script>
+  /* 생략 */
+  import { ALL, LIKE, MY } from '../utils/constant';
+
+  /* 생략 */
+  const onChangeMode = (mode) => {
+    if ($articlesMode !== mode) articlesMode.changeMode(mode)
+  }
+</script>
+<!-- 생략 -->
+<button class="main-menu mr-6" class:main-menu-selected={$articlesMode === ALL} on:click={() => onChangeMode(ALL)} >모두 보기</button>
+<button class="main-menu mr-6" class:main-menu-selected={$articlesMode === LIKE} on:click={() => onChangeMode(LIKE)}>좋아요 보기</button>
+<button class="main-menu " class:main-menu-selected={$articlesMode === MY} on:click={() => onChangeMode(MY)}>내글 보기</button>
+<!-- 생략 -->
+```
+
+이를 위해서는 라우터 구성을 수정 해야 한다.  
+
+## route url 정보 수정
+- http://localhost:3015/articles/all
+- http://localhost:3015/articles/like
+- http://localhost:3015/articles/my
+
+- [src/router.svelte]()
+- AS-IS
+  ```svelte
+  <script>
+    import { Route } from 'tinro'
+    import Articles from './pages/Articles.svelte';
+    import Login from './pages/Login.svelte';
+    import Register from './pages/Register.svelte';
+    import NotFound from './pages/notFound.svelte';
+  </script>
+  <Route path="/" redirect="/articles/all" />
+  <Route path="/articles/*" ><Articles/></Route>
+  <Route path="/login" ><Login/></Route>
+  <Route path="/register" ><Register/></Route>
+  <Route fallback ><NotFound/></Route>
+  ```
+
+- TO-BE
+  ```svelte
+  <script>
+    import { Route } from 'tinro'
+    import { isLogin } from ''
+    import Articles from './pages/Articles.svelte';
+    /* 생략 */
+  </script>
+  <!-- 생략 -->
+  <Route path="/articles/*" >
+    <Route path="/all/*"><Articles/></Route>
+    {#if $isLogin}
+      <Route path="/my/*"><Articles/></Route>
+      <Route path="/like/*"><Articles/></Route>
+    {:else}
+      <Route path="/my/*" redirect="/articles/all"/>
+      <Route path="/like/*" redirect="/articles/all"><Articles/></Route>
+    {/if}
+  </Route>
+  <!-- 생략 -->
+  ```
+  `articles/*`에 해당하는 route의 하위로 기존 Articles 컴포넌트 대신 Route를 한번 더 중첩으로 구성해준다.  
+  중첩 구성을 함으로써 all, my, like url이 들어오도록 구성한다.
+  해당 url은 모두 Articles 컴포넌트를 출력하도록 태그 사이에 구성한다.  
+  로그인 했을경우 isLogin store를 통해 조건블록으로 내용을 출력하도록 하고
+  로그인이 아닌 경우에는 모두보기에 해당하는 페이지로 redirect 되도록 구성한다.
+
+다음으로는 ArticleList.svelte 컴포넌트에서 url의 mode 값을 받아 artilceModeStore의 changeMode 메소드에 해당 값을 전달하도록 구현한다.  
+
+- [ArticleList.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleList.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import { /* 생략 */, articlesMode } from '../stores'
+    import { router } from 'tinro'
+    /* 생략 */
+    let currentMode = $router.path.split("/")[2]
+
+    onMount(() => {
+      // articles.resetArticles()
+      // articles.fetchArticles()
+      articlesMode.changeMode(currentMode) // 코드 추가
+    })
+    /* 생략 */
+  </script>
+  <!-- 생략 -->
+  ```
+
+ArticleHeader.svelte 컴포넌트에서는 헤더의 메뉴를 변경했을 때 기존 모드 변경 대신 router.go()를 활용하여 선택된 route URL로 이동하도록 수정한다.  
+- [ArticleHeader.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleHeader.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    import { /* 생략 */, articlesMode } from '../stores'
+    import { ALL, LIKE, MY } from '../utils/constant';
+    /* 생략 */
+    const onChangeMode = (mode) => {
+      // if ($articlesMode !== mode) articlesMode.changeMode(mode)
+      if ($articlesMode !== mode) router.goto(`/articles/${mode}`) // 코드 추가
+    }
+  </script>
+  ```
+
+Article컴포넌트에서 Comment로 이동하는 기능을 URL에 담긴 현재 선택된 모드 정보 기반으로 수정한다.  
+- [Article.svelte](indiecoder-slog-svelte3-frontend/src/components/Article.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    let currentMode = $router.path.split("/")[2]
+    /* 생략 */
+    const goComment = (id) => {
+      // router.goto(`/articles/comments/${id}`)
+      router.goto(`/articles/${currentMode}/comments/${id}`)
+    }
+  </script>
+  ```  
+
+CommentList 컴포넌트에서 Article 목록으로 이동하는 기능을 URL에 담긴 현재 선택된 모드 정보 기반으로 수정한다.  
+- [CommentList.svelte](indiecoder-slog-svelte3-frontend/src/components/CommentList.svelte)
+  ```svelte
+  <script>
+    /* 생략 */
+    let currentMode = $router.path.split("/")[2]
+    /* 생략 */
+    onMount(() => {/* 생략 */})
+    // const goArticles = () => router.goto('/articles')
+    const goArticles = () => router.goto(`/articles/${currentMode}`)
+  </script>
+  ```
+
+</details>
+<br>
+
+
+</details>
+<br>
+
 # Template
 <details>
 <summary>접기/펼치기</summary>
