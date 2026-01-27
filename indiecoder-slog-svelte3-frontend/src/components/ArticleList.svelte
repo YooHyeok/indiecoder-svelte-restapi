@@ -4,16 +4,19 @@
   import { onMount } from 'svelte'
   import { 
     articles, currentArticlesPage,
-    loadingArticle, articlePageLock
+    loadingArticle, articlePageLock, articlesMode
    } from '../stores'
-
+  import { router } from 'tinro'
+  
   /* 스크롤 정보를 담을 상태값 */
   let component
   let element
+  let currentMode = $router.path.split("/")[2]
 
   onMount(() => {
-    articles.resetArticles()
-    articles.fetchArticles()
+    // articles.resetArticles()
+    // articles.fetchArticles()
+    articlesMode.changeMode(currentMode)
   })
   
   $: {

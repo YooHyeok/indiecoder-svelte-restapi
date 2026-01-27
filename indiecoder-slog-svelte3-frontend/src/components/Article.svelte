@@ -6,6 +6,7 @@
   import dateView from '../utils/date';
 
   let isViewMenu = false // true일 경우 context 버튼 출력
+  let currentMode = $router.path.split("/")[2]
 
   $: {
     if ($articles.menuPopup === article.id) {
@@ -34,7 +35,8 @@
   }
 
   const goComment = (id) => {
-    router.goto(`/articles/comments/${id}`)
+    // router.goto(`/articles/comments/${id}`)
+    router.goto(`/articles/${currentMode}/comments/${id}`)
   }
 
   const onLike = (id) => {

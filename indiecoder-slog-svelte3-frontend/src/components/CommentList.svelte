@@ -10,6 +10,7 @@
 
   const route = meta()
   const articleId = Number(route.params.id)
+  let currentMode = $router.path.split("/")[2]
 
   let values = {
     formContent: ''
@@ -19,7 +20,8 @@
     articleContent.getArticle(articleId)
     comments.fetchComments(articleId)
   })
-  const goArticles = () => router.goto('/articles')
+  // const goArticles = () => router.goto('/articles')
+  const goArticles = () => router.goto(`/articles/${currentMode}`)
   const onAddComment = async () => {
     try {
       await contentValidate.validate(values, {abortEarly: false /* 오류 벌크/개별 처리 여부 - false=모든form검증 및 오류 발생 */})
