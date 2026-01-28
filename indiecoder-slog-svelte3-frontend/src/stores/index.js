@@ -74,6 +74,7 @@ function setArticles() {
         } else {
           const newArticles = [...datas.articleList, ...newData.articleList]
           datas.articleList = newArticles
+          // const uniqueArr = newArticles.filter((arr, index, callback) => index === callback.findIndex(t => t.id === arr.id))
           datas.totalPageCount = newData.totalPageCount
         }
         return datas
