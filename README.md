@@ -2790,7 +2790,7 @@ MODE값 자체를 store에서 기억해두면 상관없지만, url 자체에서 
   </script>
   <!-- 생략 -->
   ```
-
+  
 ArticleHeader.svelte 컴포넌트에서는 헤더의 메뉴를 변경했을 때 기존 모드 변경 대신 router.go()를 활용하여 선택된 route URL로 이동하도록 수정한다.  
 - [ArticleHeader.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleHeader.svelte)
   ```svelte
@@ -2836,6 +2836,68 @@ CommentList 컴포넌트에서 Article 목록으로 이동하는 기능을 URL�
 </details>
 <br>
 
+# 앱 고도화: 게시글 중복 제거
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+스크롤을 내렸을 경우 페이징이 정상적으로 작동하지만, 게시글을 새롭게 작성한 후 곧바로 스크롤을 내릴 경우 마지막 게시글이 중복되어 출력된다.  
+이유는 기존 게시글의 가장 마지막 게시글을 기준으로 이전 게시글 10개를 조회해 오는데, 게시글을 작성한 후 다음 10개를 조회하게되면 페이지가 1개 추가된 상태에서 두번째 10개에 해당하는 데이터를 불러오기 때문이다.  
+예를들어 1페이지는 50번부터 41번까지 10개의 게시글이, 2페이지는 40번부터 31번까지 10개의 게시글로 조회된다.  
+```
+50 49 48 47 46 45 44 43 42 41
+40 39 38 37 36 35 34 33 32 31
+```
+만약 스크롤을 내리지 않고 게시글을 추가하게되면 가장 마지막 데이터는 51이 된다.  
+이때 스크롤을 내리면 2페이지는 41부터 시작하게 된다.  
+마지막 게시글이 51이므로 1페이지의 10개에 해당하는 목록 기준을 서버는 51~42로 인식하기 때문이다.  
+```
+51 50 49 48 47 46 45 44 43 42 41
+41 39 38 37 36 35 34 33 32 31
+```
+그래서 41번이라는 중복 게시글이 발생하게 된다.  
+
+## filter
+- 매개변수
+  1. 배열 순회 요소  
+  2. 순서 index
+  3. 현재 순회중인 원본 데이터
+
+## articles store 수정
+setArticles store의 fetchArticles 힘수 내 update 로직을 수정한다.  
+기존 newArticles에 filter를 적용하여 조건을 만족하는 index를 모두 필터링한다.  
+비교할 index는 filter 함수의 세번째 인자인 원본 배열. 즉, newArticles에서 findIndex를 활용하여 id가 일치하는 첫번째 값에 해당하는 index를 반환받는다.  
+이렇게 필터링 된 배열을 datas의 articleList에 초기화해준다.  
+
+### AS-IS
+```js
+update(datas => {
+  if (currentPage == 1) {
+    /* 생략 */
+  } else {
+    const newArticles = [...datas.articleList, ...newData.articleList]
+    datas.articleList = newArticles
+    /* 생략 */
+  }
+  return datas
+})
+```
+### TO-BE
+```js
+update(datas => {
+  if (currentPage == 1) {
+    /* 생략 */
+  } else {
+    const newArticles = [...datas.articleList, ...newData.articleList]
+    const uniqueArr = newArticles.filter((arr, index, callback) => index === callback.findIndex(t => t.id === arr.id))
+    /* 생략 */
+  }
+  return datas
+})
+```
+
+</details>
+<br>
 
 </details>
 <br>
