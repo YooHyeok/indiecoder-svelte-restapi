@@ -16,6 +16,10 @@
   onMount(() => {
     component = document.querySelector(domTarget)
     element = component.parentNode
+    if (element) {
+      element.addEventListener('scroll', onScroll)
+      element.addEventListener('resize', onScroll)
+    }
   })
   
   onDestroy(() => {
@@ -24,13 +28,6 @@
       element.removeEventListener('resize', onScroll)
     }
   })
-
-  $: {
-    if (element) {
-      element.addEventListener('scroll', onScroll)
-      element.addEventListener('resize', onScroll)
-    }
-  }
 
   const onScroll = (e) => {
     const scrollHeight = e.target.scrollHeight // 스크롤 높이
