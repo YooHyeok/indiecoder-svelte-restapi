@@ -2899,8 +2899,258 @@ update(datas => {
 </details>
 <br>
 
+# 무한스크롤 컴포넌트화 (props & Event Dispatch)
+<details>
+<summary>접기/펼치기</summary>
+<br>
+
+## Scroll 필요 구성요소
+### 필요 값
+- totalPageCount: 전체 페이지 수
+- currentPage: 현재 페이지
+- pageLock: 다음 페이지 호출에 대한 잠금 상태
+- loading: 로딩중 상태
+- domTarget: 스크롤 정보를 얻을 돔 영역
+### 필요 스토어
+- articlePageLock.set(true): pageLock 설정 메소드
+- currentArticlesPAge.increPage(): 다음 페이지 호출
+
+
+
+#### [ArticleList.svelte](indiecoder-slog-svelte3-frontend/src/components/ArticleList.svelte)
+
+스크롤과 관련된 모든 상태 및 store를 props로 전달하고 관련 store등 호출 기능 메소드를 자식 컴포넌트에서 호출(Event Dispatch) 하기 위해 이벤트로 바인드한다.
+Event Dispatch란 Vue의 Emit과 유사한 기능으로 사용법은 아래 IfinitieScroll.svelte컴포넌트 부분에서 자세하게 설명한다.
+
+
+<details>
+<summary>코드 접기/펼치기</summary>
+<br>
+
+- AS-IS
+  ```svelte
+  <script>
+    import Article from "./Article.svelte";
+    import ArticleLoading from "./ArticleLoading.svelte";
+    import { onMount } from 'svelte'
+    import { 
+      articles, currentArticlesPage,
+      loadingArticle, articlePageLock, articlesMode
+    } from '../stores'
+    import { router } from 'tinro'
+    
+    /* 스크롤 정보를 담을 상태값 */
+    let component
+    let element
+    let currentMode = $router.path.split("/")[2]
+
+    onMount(() => {
+      articlesMode.changeMode(currentMode)
+    })
+    
+    $: {
+      if (component) {
+        element = component.parentNode
+        element.addEventListener('scroll', onScroll)
+        element.addEventListener('resize', onScroll)
+      }
+    }
+
+    const onScroll = (e) => {
+      const scrollHeight = e.target.scrollHeight // 스크롤 높이
+      const clientHeight = e.target.clientHeight // 화면 높이
+      const scrollTop = e.target.scrollTop // 현재 스크롤 위치
+      const realHeight = scrollHeight - clientHeight // 실제 스크롤 높이
+      const triggerHeight = realHeight * 0.7 // 화면 70%에 해당하는 높이(다음 페이지가 호출될 스크롤 위치)
+
+      const triggerComputed = () => {
+        return scrollTop > triggerHeight
+      }
+      const countCheck = () => {
+        const check = $articles.totalPageCount <= $currentArticlesPage 
+        return check
+      }
+
+      if(countCheck()) {// 전체 페이지보다 현재 호출된 페이지보다 작거나 같은 경우 조회 잠금
+        articlePageLock.set(true)
+      }
+
+      const scrollTrigger = () => {
+        return triggerComputed() && !countCheck() && !$articlePageLock
+      }
+      if (scrollTrigger()) {
+        currentArticlesPage.increPage()
+      }
+    }
+
+  </script>
+  <div class="slog-list-wrap" bind:this={component}>    
+    <ul class="slog-ul">
+      {#each $articles.articleList as article, index}
+        <li class="mb-5">
+          <Article {article} />
+        </li>
+      {/each}
+    </ul>
+    {#if $loadingArticle}
+      <ArticleLoading />
+    {/if}
+  </div>
+  ```
+
+- TO-BE
+  ```svelte
+  <script>
+    import Article from "./Article.svelte";
+    import { onMount } from 'svelte'
+    import { 
+      articles, currentArticlesPage,
+      loadingArticle, articlePageLock, articlesMode
+    } from '../stores'
+    import { router } from 'tinro'
+    import InfiniteScroll from "./InfiniteScroll.svelte";
+    
+    /* 스크롤 정보를 담을 상태값 */
+    let currentMode = $router.path.split("/")[2]
+
+    onMount(() => {
+      articlesMode.changeMode(currentMode)
+    })
+
+  </script>
+  <div class="slog-list-wrap infiniteTarget">    
+    <ul class="slog-ul">
+      {#each $articles.articleList as article, index}
+        <li class="mb-5">
+          <Article {article} />
+        </li>
+      {/each}
+    </ul>
+    <InfiniteScroll 
+      loading={$loadingArticle}
+      pageLock={$articlePageLock}
+      totalPageCount={$articles.totalPageCount}
+      currentPage={$currentArticlesPage}
+      domTarget={'.infiniteTarget'}
+      on:onPageLock={() => articlePageLock.set(true)}
+      on:increPage={() => currentArticlesPage.increPage()}
+    />
+  </div>
+  ```
+</details>
+<br/>
+
+#### [InfiniteScroll.svelte](indiecoder-slog-svelte3-frontend/src/components/InfiniteScroll.svelte)
+
+핵심적으로 봐야할 문법은 event dispatch 문법이다.  
+svelte로 부터 createEventDispatcher 훅을 import 한 후
+`const dispatch = createEventDispatcher()` 형태로 변수에 할당해준다.  
+해당 변수는 함수 형태이며, 부모에서 `on:이벤트명={메소드}`으로 자식컴포넌트에 지정한 이벤트명을 `dispatch('이벤트명')` 형태로 호출한다.
+                                  
+```svelte
+<script>
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import ArticleLoading from "./ArticleLoading.svelte";
+
+  export let totalPageCount
+  export let currentPage
+  export let pageLock
+  export let loading
+  export let domTarget
+
+  const dispatch = createEventDispatcher();
+  
+  let component
+  let element
+
+  onMount(() => {
+    component = document.querySelector(domTarget)
+    element = component.parentNode
+  })
+  
+  onDestroy(() => {
+    if (element) {
+      element.removeEventListener('scroll', onScroll)
+      element.removeEventListener('resize', onScroll)
+    }
+  })
+
+  $: {
+    if (element) {
+      element.addEventListener('scroll', onScroll)
+      element.addEventListener('resize', onScroll)
+    }
+  }
+
+  const onScroll = (e) => {
+    const scrollHeight = e.target.scrollHeight // 스크롤 높이
+    const clientHeight = e.target.clientHeight // 화면 높이
+    const scrollTop = e.target.scrollTop // 현재 스크롤 위치
+    const realHeight = scrollHeight - clientHeight // 실제 스크롤 높이
+    const triggerHeight = realHeight * 0.7 // 화면 70%에 해당하는 높이(다음 페이지가 호출될 스크롤 위치)
+
+    const triggerComputed = () => {
+      return scrollTop > triggerHeight
+    }
+    const countCheck = () => {
+      // const check = $articles.totalPageCount <= $currentArticlesPage 
+      const check = totalPageCount <= currentPage
+      return check
+    }
+
+    if(countCheck()) {// 전체 페이지보다 현재 호출된 페이지보다 작거나 같은 경우 조회 잠금
+      // articlePageLock.set(true)
+      dispatch('onPageLock')
+    }
+    
+    const scrollTrigger = () => {
+      return triggerComputed() && !countCheck() && !pageLock
+    }
+    if (scrollTrigger()) {
+      dispatch('increPage')
+    }
+  }
+</script>
+{#if loading}
+  <ArticleLoading />
+{/if}
+```
 </details>
 <br>
+
+### 추가 리팩토링
+
+현재 InfiniteScroll.svelte 컴포넌트에서 scroll 관련 이벤트 리스너 등록을 반응성(형) 블록에 등록하고 있으나, li가 추가되더라도 부모 element는 변경되지 않으므로 mount 라이프사이클 훅에서 등록하는것이 더 맞다.
+```svelte
+<script>
+  import { onMount, onDestroy, /* 생략 */ } from "svelte";
+  /* 생략 */
+  export let domTarget
+
+  /* 생략 */
+  let component
+  let element
+
+  onMount(() => {
+    component = document.querySelector(domTarget)
+    element = component.parentNode
+    if (element) {
+      element.addEventListener('scroll', onScroll)
+      element.addEventListener('resize', onScroll)
+    }
+  })
+  
+  onDestroy(() => {
+    if (element) {
+      element.removeEventListener('scroll', onScroll)
+      element.removeEventListener('resize', onScroll)
+    }
+  })
+
+  /* 생략 */
+</script>
+<!-- 생략 -->
+```
 
 # Template
 <details>
