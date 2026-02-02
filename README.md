@@ -19,11 +19,10 @@
 src/components 디렉토리 하위에 10개 컴포넌트를 구성한다.  
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components // 디렉토리 생성(하위 포함)
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components // 디렉토리 생성(하위 포함)
 │  │  ├─ Article.svelte
 │  │  ├─ ArticleAddForm.svelte
 │  │  ├─ ArticleEditForm.svelte
@@ -33,14 +32,14 @@ src/components 디렉토리 하위에 10개 컴포넌트를 구성한다.
 │  │  ├─ AuthHeader.svelte
 │  │  ├─ AuthRegister.svelte
 │  │  ├─ Comment.svelte
-│  │  ├─ CommentList.svelte
-│  ├─ styles
+│  │  └─ CommentList.svelte
+│  ├─📂 styles
 │  │  └─ main.css
 │  ├─ App.svelte
 │  └─ main.js
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 
 ### 전역 css 적용
@@ -99,24 +98,22 @@ npm install -D tinro
 src/pages 디렉토리 하위에 4개 컴포넌트를 구성한다.  
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages // 디렉토리 생성(하위 포함)
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages // 디렉토리 생성(하위 포함)
 │  │  ├─ Articles.svelte
 │  │  ├─ Comments.svelte
 │  │  ├─ Login.svelte
 │  │  ├─ notFound.html.svelte
 │  │  └─ Register.svelte
-│  ├─ styles
-│  │  └─ main.css
+│  ├─📂 styles
 │  ├─ App.svelte
 │  └─ main.js
 │  └─ router.svelte // 생성
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 
 ### [Articles.svelte](indiecoder-slog-svelte3-frontend/src/pages/Articles.svelte)
@@ -268,22 +265,20 @@ getApi(options);
 src 디렉토리 하위에 service 디렉토리를 구성하고 그 하위에 api.js 를 만든다.
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages
-│  ├─ service // 디렉토리 생성(하위 포함)
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages
+│  ├─📂 service // 디렉토리 생성(하위 포함)
 │  │  └─ api.js // 생성
-│  ├─ styles
-│  │  └─ main.css
+│  ├─📂 styles
 │  ├─ App.svelte
 │  └─ main.js
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 - [api.js](indiecoder-slog-svelte3-frontend/src/service/api.js)
   ```js
@@ -352,23 +347,21 @@ Store는 전역으로 사용할 수 있는 상태값이다.
 src 디렉토리 하위에 stores 디렉토리를 구성하고 그 하위에 index.js 를 만든다.
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages
-│  ├─ service
-│  ├─ stores // 디렉토리 생성(하위 포함)
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages
+│  ├─📂 service
+│  ├─📂 stores // 디렉토리 생성(하위 포함)
 │  │  └─ index.js.js // 생성
-│  ├─ styles
-│  │  └─ main.css
+│  ├─📂 styles
 │  ├─ App.svelte
 │  └─ main.js
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 
 ### store 모듈 스켈레톤 코드
@@ -2278,23 +2271,22 @@ store를 수정하기 전 해당 옵션에 대한 상수값을 만든다.
 
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages
-│  ├─ service
-│  ├─ stores
-│  ├─ styles
-│  ├─ utils // 디렉토리 생성(하위 포함)
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages
+│  ├─📂 service
+│  ├─📂 stores
+│  ├─📂 styles
+│  ├─📂 utils // 디렉토리 생성(하위 포함)
 │  │  └─ constant.js
 │  ├─ App.svelte
 │  └─ main.js
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 
 - [src/utils/constant.js](indiecoder-slog-svelte3-frontend/src/utils/constant.js)
@@ -2512,16 +2504,15 @@ yup.object().shape({
 
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages
-│  ├─ service
-│  ├─ stores
-│  ├─ styles
-│  ├─ utils 
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages
+│  ├─📂 service
+│  ├─📂 stores
+│  ├─📂 styles
+│  ├─📂 utils 
 │  │  ├─ validates.js // 추가
 │  │  └─ constant.js
 │  ├─ App.svelte
@@ -2529,7 +2520,7 @@ yup.object().shape({
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 ### 모듈 구현
 게시글(코멘트), 로그인, 회원가입에 대한 각각의 검증 스키마들을 구현하고, form마다 발생되는 오류를 reduce를 통해 한번에 수집하는 extractErrors라는 유틸 함수를 같이 구현한다.  
@@ -2638,16 +2629,15 @@ npm install dayjs
 ## dayjs 모듈 생성 및 구현
 ```
 설치경로
-├─ node_modules
-├─ public
-├─ scrtips
-├─ src
-│  ├─ components
-│  ├─ pages
-│  ├─ service
-│  ├─ stores
-│  ├─ styles
-│  ├─ utils 
+├─📂 node_modules
+├─📂 public
+├─📂 src
+│  ├─📂 components
+│  ├─📂 pages
+│  ├─📂 service
+│  ├─📂 stores
+│  ├─📂 styles
+│  ├─📂 utils 
 │  │  ├─ validates.js
 │  │  ├─ date.js // 추가
 │  │  └─ constant.js
@@ -2656,7 +2646,7 @@ npm install dayjs
 │  └─ router.svelte
 ├─ index.html
 ├─ package.json
-└─ rollup.config.js
+└─ vite.config.js
 ```
 
 ### 모듈 구현
